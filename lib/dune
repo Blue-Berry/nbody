@@ -1,0 +1,3 @@
+(library
+ (name nbody)
+ (libraries graphics))
