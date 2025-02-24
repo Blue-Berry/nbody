@@ -1,7 +1,5 @@
 (* You do not need to modify this file. *)
 
-open Printf
-open List
 
 
 
@@ -47,7 +45,7 @@ let run_failing_test msg f =
   match result with 
   | Succ -> print_endline ("Test passed!")
   | Fail -> error_mesg ("Test error: should have failed.") 
-  | Err s -> error_mesg ("run_failing_test BUG: shouldn't get here.")
+  | Err _ -> error_mesg ("run_failing_test BUG: shouldn't get here.")
 
       
 

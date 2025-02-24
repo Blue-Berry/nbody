@@ -1,3 +1,10 @@
-(library
- (name nbody)
- (libraries graphics))
+; (library
+;  (name nbody)
+;  (libraries graphics))
+
+(executable
+ (name higherOrderFunctions))
+
+
+(executable
+ (name nbody))

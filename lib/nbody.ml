@@ -395,7 +395,10 @@ let test () : bool =
    function should first update the position and then the velocity of the
    given body according to the above functions.  *)
 let step_body (b: body) (a: vec) (t: timestep) : unit =
-  failwith "step_body not implemented"
+  let pos' = new_position b.pos t b.vel a in
+  let vel' = new_velocity b.vel a t in
+  b.pos <- pos';
+  b.vel <- vel'
 
 let test () : bool =
   let b1       = { mass = 1.0e24; pos = zero; vel = zero } in
@@ -423,7 +426,9 @@ let test () : bool =
    asking you to implement the List.iter library function -- so you
    should not use that here.) *)
 let rec iter (process: 'a -> unit) (l: 'a list) : unit =
-  failwith "iter unimplemented"
+  match l with
+    | [] -> ()
+    | h::t -> process h; iter process t
 
 let test () : bool =
   let l: body list = [ { mass = 1.0; pos = zero; vel = zero };
@@ -455,7 +460,10 @@ let print_bodies (bs: body list) : unit =
    If the lists are of unequal length then the iteration should
    terminate when either list is []. *)
 let rec iter2 (process: 'a -> 'b -> unit) (l1: 'a list) (l2: 'b list) : unit =
-  failwith "iter2 unimplemented"
+  match l1, l2 with
+    | [], [] -> ()
+    | [], _ | _, [] -> ()
+    | h1::t1, h2::t2 -> process h1 h2; iter2 process t1 t2
 
 let test () : bool =
   let l1: body list = [ { mass = 1.0; pos = zero; vel = zero };
@@ -508,7 +516,11 @@ let test () : bool =
 
 
 let rec accelerate_body (bodies: body list) (pos1: point) : vec =
-failwith "accelerate_body: unimplemented"
+  let combine_accelerations (b: body) (acc: vec) : vec =
+    acc_on pos1 b.mass b.pos ++ acc
+  in
+  HigherOrderFunctions.fold combine_accelerations zero bodies
+
 
 (* Again, we test whether the vectors are "close_enough", *not* whether
  * they are equal to each other. *)
@@ -538,7 +550,11 @@ let test () : bool =
    unless you need them for debugging.
  *)
 let accelerations (bodies: body list) : vec list =
-  failwith "Missing implementation for accelerations"
+  let calc_acc (b: body): vec =
+    let bodies = List.filter (fun b' -> b.pos <> b'.pos) bodies in
+    accelerate_body bodies b.pos
+  in
+  HigherOrderFunctions.transform calc_acc bodies
 
 
 let test () : bool =
@@ -582,7 +598,8 @@ let test () : bool =
    on the assignment webpage.
  *)
 let step_bodies (bodies: body list) (dt: timestep) : unit =
-  failwith "Missing implementation of step_bodies"
+  let accels = accelerations bodies in
+  iter2 (fun a b -> step_body b a dt) accels bodies
 
 let test () : bool =
   let b1 = { mass = 1.0e24; pos = (0.0, 0.0); vel = zero } in

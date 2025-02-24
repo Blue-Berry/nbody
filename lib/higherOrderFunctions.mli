@@ -18,3 +18,5 @@ val empty : 'a set
 val add : 'a -> 'a set -> 'a set
 val remove : 'a -> 'a set -> 'a set
 
+val list_member : 'a -> 'a list -> bool
+

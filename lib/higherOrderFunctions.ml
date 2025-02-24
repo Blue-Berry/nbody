@@ -59,7 +59,7 @@ let test () : bool =
    anonymous function.) *)
 let product_combine : int -> int -> int =
   fun (x: int) (y: int) ->
-     failwith "unimplemented product_combine"
+   x * y
 
 let test () : bool =
   360 = (fold product_combine 1 [3; 4; 5; 6])
@@ -70,7 +70,7 @@ let test () : bool =
    even. *)
 let all_evens_combine : int -> bool -> bool =
   fun (x: int) (y: bool) ->
-     failwith "unimplemented all_evens_combine"
+    y && (x mod 2 = 0)
 
 let test () : bool =
   fold all_evens_combine true [0; 2; 0; -2]
@@ -93,7 +93,8 @@ let rec list_member (x:'a) (l:'a list) : bool =
    of member_combine so that calling (fold (member_combine x) false l) is the 
    same as (list_member x l). *)
 let member_combine (x:'a) : 'a -> bool -> bool =
-  failwith "unimplemented member_combine"
+  fun (y: 'a) (z: bool) ->
+    z || (x = y)
 
 let test () : bool =
  fold (member_combine 1) false [3;1;2] = true
@@ -103,8 +104,8 @@ let test () : bool =
  fold (member_combine "a") false ["d";"e";"f"] = false
 ;; run_test "fold (member_combine a) false [d;e;f]" test
 
-let test () : bool =
-  fold (member_combine 3) false [1;2;3] = true
+(* let test () : bool = *)
+(*   fold (member_combine 3) false [1;2;3] = true *)
 
 
 (* Finally, let's show that the filter function can also be expressed
@@ -122,7 +123,7 @@ let rec filter (pred: 'a -> bool) (l: 'a list) : 'a list =
    (fold (filter_combine pred) [] l). *)
 let filter_combine (pred: 'a -> bool) : 'a -> 'a list -> 'a list =
   fun (x: 'a) (y: 'a list) ->
-     failwith "unimplemented filter_combine"
+    if pred x then x :: y else y
 
 let test () : bool =
   fold (filter_combine (fun (x: int) -> (abs x) mod 2 <> 0))
@@ -156,7 +157,8 @@ let rec transform (f: 'a -> 'b) (l: 'a list) : 'b list =
  *)
 
 let transform_combine (f: 'a -> 'b) : 'a -> 'b list -> 'b list =
-  failwith "unimplemented transform_combine"
+  fun (x: 'a) (y: 'b list) ->
+    f x :: y
 
 let test () : bool =
   fold (transform_combine (fun (x: int) -> x * x)) [] [-2; 1; 0; 1; 2]
@@ -184,7 +186,14 @@ let test () : bool =
  * useful here.
  *)
 let fold_unzip (l: ('a * 'b) list) : 'a list * 'b list =
-  failwith "Missing implementation for unzip_combine"
+  let rec unzip_combine (l: ('a * 'b) list) : 'a list * 'b list =
+    begin match l with
+    | [] -> ([], [])
+    | (x, y) :: xs ->
+        let (xs1, xs2) = unzip_combine xs in
+        (x :: xs1, y :: xs2)
+    end
+  in unzip_combine l
 
 let test () : bool =
   fold_unzip [("a", 1); ("b", 2)] = (["a"; "b"], [1; 2]) 
@@ -212,13 +221,13 @@ let mem (x: 'a) (s: 'a set) : bool =
 
 (* Implement empty, add, and remove using this representation: *)
 let empty : 'a set =
-  fun (x: 'a) -> failwith "unimplemented empty"
+  fun (_x: 'a) ->  false
 
 let add (x: 'a) (s: 'a set) : 'a set =
-  failwith "unimplemented add"
+  fun (y: 'a) -> x = y || s y
 
 let remove (x:'a) (s: 'a set) : 'a set =
-  failwith "unimplemented remove"
+  fun (y: 'a) -> x = y && not (s y)
 
 let test () : bool =
   false = mem 3 empty

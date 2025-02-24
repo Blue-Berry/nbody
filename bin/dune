@@ -1,4 +1,4 @@
 (executable
  (public_name nbody)
  (name main)
- (libraries nbody))
+ )
