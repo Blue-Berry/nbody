@@ -7,4 +7,5 @@
 
 
 (executable
- (name nbody))
+ (name viewer)
+ (libraries graphics))

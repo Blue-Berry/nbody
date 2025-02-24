@@ -492,7 +492,7 @@ let test () : bool =
  * and [b3], by adding together the accelerations for each.
  *)
 
-let rec accelerate_body_by_two (pos1:point) (b2: body) (b3:body): vec = 
+let accelerate_body_by_two (pos1:point) (b2: body) (b3:body): vec = 
   acc_on pos1 b2.mass b2.pos ++ acc_on pos1 b3.mass b3.pos
 
 let test () : bool = 
@@ -515,7 +515,7 @@ let test () : bool =
  *)
 
 
-let rec accelerate_body (bodies: body list) (pos1: point) : vec =
+let accelerate_body (bodies: body list) (pos1: point) : vec =
   let combine_accelerations (b: body) (acc: vec) : vec =
     acc_on pos1 b.mass b.pos ++ acc
   in
@@ -696,7 +696,7 @@ let planets = [star sun_mass; mars (); jupiter (); saturn (); uranus ()]
 let dist = 4000000000.0
 
 (* Generate a random number from a Gaussian distribution centered at d *)
-let rec gen_dist (d: float) : float =
+let gen_dist (d: float) : float =
   let iter = 10 in
   let k = d /. (float_of_int iter) in
   let rec loop i acc =

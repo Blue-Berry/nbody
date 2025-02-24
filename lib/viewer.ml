@@ -18,8 +18,8 @@ open Nbody
 (* Simulations are always a tradeoff between speed and accuracy.
    Rather than hard-code a particular tradeoff in the simulation, we
    define a few different timesteps to play with. *)
-let step_slow : timestep = 50.0
-let step_fast : timestep = 200.00
+let step_slow : timestep = 1.0
+(* let step_fast : timestep = 200.00 *)
 	
 (* Define a few constants we use for the display. *)
 let dim = 1000              
@@ -35,7 +35,7 @@ let draw_centroid (m:float) (x:float) (y:float) (c:color) : unit =
      set_color c;
      fill_circle px py r
 
-let rec draw_body (b:body) : unit =
+let draw_body (b:body) : unit =
   draw_centroid b.mass (fst b.pos) (snd b.pos) white
 
 (* You can configure the program to run for a given number
