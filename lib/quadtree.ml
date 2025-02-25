@@ -352,7 +352,14 @@ let rec qlookup (q: qtree) (p: point) (bb: bounding_box) : bool =
   match q with 
   | Empty -> false
   | Leaf (_, p') -> close_enough p p'
-  | Node (_, qs) -> qlookup (qs.ul) p bb || qlookup (qs.ur) p bb || qlookup (qs.ll) p bb || qlookup (qs.lr) p bb
+  | Node (_, qs) ->
+      (
+        match quadrant p bb with
+        | UL -> qlookup qs.ul p (quadrant_of UL bb)
+        | UR -> qlookup qs.ur p (quadrant_of UR bb)
+        | LL -> qlookup qs.ll p (quadrant_of LL bb)
+        | LR -> qlookup qs.lr p (quadrant_of LR bb)
+      )
 
 let test () : bool =
   let qt = quadtree_example_leaf () in
@@ -407,9 +414,28 @@ let test () : bool =
 *)
 
 (* Calculate the acceleration on the point in pos1 by the quadtree q *)
-let rec acc_by_qtree (pos1: point) (q: qtree) (bb: bounding_box) (thresh: float)
-                     : vec =
-  failwith "Missing implementation for acc_by_qtree"
+let acc_by_qtree (pos1: point) (q: qtree) (bb: bounding_box) (thresh: float) : vec =
+  let rec aux (q: qtree) (bb:bounding_box) (acc: vec) : vec =
+    match q with
+  | Empty -> acc
+  | Leaf (m, p) -> zero ++ acc_on pos1 m p 
+  | Node (c, qs) ->(
+    let cm, cp = c in
+    let d = pos1 --> cp |> mag in
+    if (d > thresh) && (in_bounding_box pos1 bb) then
+      acc_on pos1 cm cp
+    else
+      (* recurse on quadrants *)
+      let acc_ur = aux qs.ur (quadrant_of UR bb) acc in
+      let acc_ll = aux qs.ll (quadrant_of LL bb) acc in
+      let acc_ul = aux qs.ul (quadrant_of UL bb) acc in
+      let acc_lr = aux qs.lr (quadrant_of LR bb) acc in
+      (* sum the four quadrants *)
+      (acc_ur ++ acc_ll) ++ (acc_ul ++ acc_lr)
+    )
+    in
+  aux q bb zero
+
 
 (* The threshold we pick for these two tests doesn't matter, because our
    test points are all in the bounding box. *)
