@@ -262,7 +262,10 @@ let q4 : qtree =
 
 (* First, generate a leaf that contains a single point with mass 1.0
 at (1.0, 1.0). *)
-let quadtree_example_leaf () = failwith "fill in example case"
+let quadtree_example_leaf () = 
+  Leaf (1.0 , (1.0, 1.0))
+  
+
 
 (* Now, make it a little more interesting by generating a quadtree
    containing two different bodies ...
@@ -272,7 +275,16 @@ let quadtree_example_leaf () = failwith "fill in example case"
 
  *)
 
-let quadtree_example_node1 () = failwith "fill in example case"
+let quadtree_example_node1 () = 
+  let b1: centroid = (2.0 , (3.0, 3.0)) in
+  let b2: centroid = (4.0 , (1.5, 1.5)) in
+  Node (centroid_sum b1 b2, {
+    ul = Empty;
+    ur = Leaf (2.0 , (3.0, 3.0));
+    ll = Leaf (4.0 , (1.5, 1.5));
+    lr = Empty;
+  })
+
 
 (* Now, let's consider something just a bit more complex. Generate a
    quadtree containing the following bodies
@@ -280,7 +292,16 @@ let quadtree_example_node1 () = failwith "fill in example case"
    - Mass 2.0 at (1.25, 1.25)
    - Mass 4.0 at (0.75, 0.75)
  *)
-let quadtree_example_node2 () = failwith "fill in example case"
+let quadtree_example_node2 () = 
+  let b1 : centroid = (2.0 , (1.25, 1.25)) in
+  let b2 : centroid = (4.0 , (0.75, 0.75)) in
+  Node (centroid_sum b1 b2, {
+    ul = Empty;
+    ur = Leaf (2.0 , (1.25, 1.25));
+    ll = Leaf (4.0 , (0.75, 0.75));
+    lr = Empty;
+  })
+
 
 
 (* Now that you've had a little practice seeing how quadtrees are
@@ -328,7 +349,28 @@ let quadtree_example_node2 () = failwith "fill in example case"
 
 
 let rec qlookup (q: qtree) (p: point) (bb: bounding_box) : bool =
-  failwith "qlookup unimplemented"
+  match q with 
+  | Empty -> false
+  | Leaf (_, p') -> close_enough p p'
+  | Node (_, qs) -> qlookup (qs.ul) p bb || qlookup (qs.ur) p bb || qlookup (qs.ll) p bb || qlookup (qs.lr) p bb
+
+let test () : bool =
+  let qt = quadtree_example_leaf () in
+  let p = (1.0, 1.0) in
+  qlookup qt p bb0to4
+;; run_test "qlookup: leaf" test
+
+let test () : bool =
+  let qt = quadtree_example_node1 () in
+  let p = (1.0, 1.0) in
+  qlookup qt p bb0to4
+;; run_test "qlookup: node 1" test
+
+let test () : bool =
+  let qt = quadtree_example_node2 () in
+  let p = (1.0, 1.0) in
+  qlookup qt p bb0to4
+;; run_test "qlookup: node 2" test
 
 (* You are responsible for creating tests for qlookup, based on the example quadtrees
  * above. The TAs will be grading your tests. *)
