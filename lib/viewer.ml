@@ -18,7 +18,7 @@ open Nbody
 (* Simulations are always a tradeoff between speed and accuracy.
    Rather than hard-code a particular tradeoff in the simulation, we
    define a few different timesteps to play with. *)
-let step_slow : timestep = 0.5
+let step_slow : timestep = 50.0
 (* let step_fast : timestep = 200.00 *)
 	
 (* Define a few constants we use for the display. *)
@@ -74,5 +74,5 @@ let run (bodies:body list) (timestep : timestep) : unit =
  *    ;; run collision step_slow
  * But, it will be too slow.
  *)
-;; run collision step_slow
+;; run planets step_slow
  
