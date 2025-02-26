@@ -121,6 +121,26 @@ let subdivide (qt : qtree) (node_idx : int) : int =
   children
 ;;
 
+let subdivide_leaf (qt : qtree) (node_idx : int) (lm, lp : centroid) : int =
+  let children = qt.nodes |> Dynarray.length in
+  let node = Dynarray.get qt.nodes node_idx in
+  assert (node_type node != Node);
+  Dynarray.set qt.nodes node_idx { node with children };
+  let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
+  for i = 0 to 3 do
+    let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
+    Dynarray.add_last
+      qt.nodes
+      { centroid = 
+    if Bbox.contains_point lp bbox then
+      lm, lp
+      else
+        0.0, zero
+        ; children = 0; next = next_nodes.(i); bbox }
+  done;
+  children
+;;
+
 (* Calculate the bounding box if decebging divide the bounding box into quadrants if ascending multiple the bounding box *)
 let acc_by_qtree (pos1 : point) (q : qtree) (thresh : float) : vec =
   let rec aux (q : qtree) (node_idx : int) (acc : vec) : vec =
@@ -150,17 +170,15 @@ let insert (qt : qtree) ((m, pos) : centroid) =
       node.centroid <- m, pos;
       Dynarray.set q.nodes node_idx node
     | Leaf ->
-      let m2, pos2 = node.centroid in
-      if close_enough pos2 pos
+      let cm, cp = node.centroid in
+      if close_enough cp pos
       then (
-        node.centroid <- m +. m2, pos;
+        node.centroid <- m +. cm, pos;
         Dynarray.set q.nodes node_idx node)
       else 
-        let children = subdivide q node_idx in
-        let q2 = Quadrant.contains pos2 node.bbox in
-        let q1 = Quadrant.contains pos node.bbox in
-        if 
-        ()
+        let children = subdivide_leaf q node_idx (cm, cp) in
+        let q_idx = Quadrant.contains pos node.bbox |> Quadrant.to_index in
+        aux q (children + q_idx)
   in
   aux qt 0
 ;;
