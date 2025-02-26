@@ -14,9 +14,10 @@
 
 ;; open Graphics
 ;; open Nbody
-;; open Quadtree
+;; open Qtree
 
 (* The bounding box for the quadtree simulation *)    
+ open Qtree.Bbox
 let bb = {minx=dist *. -500.; maxx=dist *. 500.;
           miny=dist *. -500.; maxy=dist *. 500.}
 
@@ -55,7 +56,7 @@ let draw_centroid (m:float) (x:float) (y:float) (c:color) : unit =
      set_color c;
      fill_circle px py r
 
-let rec draw_qtree (q:qtree) (bb:bounding_box) (c:int) : unit =
+let rec draw_qtree (q:qtree) (bb:Bbox.t) (c:int) : unit =
   begin match q with
     | Empty -> ()
     | Leaf(m,(x,y)) -> draw_centroid m x y white
@@ -67,10 +68,10 @@ let rec draw_qtree (q:qtree) (bb:bounding_box) (c:int) : unit =
           lineto midx (float_to_screen (bb.maxy));
           moveto (float_to_screen (bb.minx)) midy;
           lineto (float_to_screen (bb.maxx)) midy;
-          draw_qtree quads.ll (quadrant_of LL bb) (c-5) ;
-          draw_qtree quads.lr (quadrant_of LR bb) (c-5) ;
-          draw_qtree quads.ul (quadrant_of UL bb) (c-5) ;
-          draw_qtree quads.ur (quadrant_of UR bb) (c-5)
+          draw_qtree quads.ll (Quadrant.to_bbox LL bb) (c-5) ;
+          draw_qtree quads.lr (Quadrant.to_bbox LR bb) (c-5) ;
+          draw_qtree quads.ul (Quadrant.to_bbox UL bb) (c-5) ;
+          draw_qtree quads.ur (Quadrant.to_bbox UR bb) (c-5)
       end
   end
 
@@ -133,4 +134,5 @@ let run (bodies:body list) (step : step_function): unit =
 ;; run planets step_slow
  *)
 
+(* ;; run planets step_slow *)
 ;; run collision step_slow

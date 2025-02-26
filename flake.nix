@@ -40,6 +40,7 @@
                 eio
                 graphics
                 owl
+                ppx_jane
             ];
           };
 

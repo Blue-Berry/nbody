@@ -1,12 +1,13 @@
 open Owl.Maths
+open Sexplib.Std
 
 let ( +. ) = add
 let ( -. ) = sub
 let ( *. ) = mul
 let ( /. ) = div
 
-type point = float * float 
-type vec = float * float
+type point = float * float [@@deriving sexp]
+type vec = float * float [@@deriving sexp]
 
 let displace ((x, y) : point) ((dx, dy) : vec) : point = x +. dx, y +. dy
 [@@inline always]
@@ -22,7 +23,7 @@ let ( --> ) ((x1, y1) : point) ((x2, y2) : point) : vec = x2 -. x1, y2 -. y1
 ;;
 
 let ( ++ ) ((x1, y1) : vec) ((x2, y2) : vec) : vec = x1 +. x2, y1 +. y2 [@@inline always]
-let zero : vec = 0.0, 0.0 
+let zero : vec = 0.0, 0.0
 
 let close_enough (p1 : float * float) (p2 : float * float) : bool =
   mag_squared (p1 --> p2) < 0.00001
@@ -78,15 +79,12 @@ let step_body (b : body) (a : vec) (t : timestep) : unit =
   b.vel <- vel'
 ;;
 
-
-
 let accelerate_body (bodies : body list) (pos1 : point) : vec =
   let combine_accelerations (acc : vec) (b : body) : vec =
     acc_on pos1 b.mass b.pos ++ acc
   in
   List.fold_left combine_accelerations zero bodies
 ;;
-
 
 let accelerations (bodies : body list) : vec list =
   let calc_acc (b : body) : vec =
@@ -95,7 +93,6 @@ let accelerations (bodies : body list) : vec list =
   in
   List.map calc_acc bodies
 ;;
-
 
 let step_bodies (bodies : body list) (dt : timestep) : unit =
   let accels = accelerations bodies in
@@ -162,7 +159,6 @@ let add_velocity (bodies : body list) (v : vec) : unit =
   List.iter (fun b -> b.vel <- b.vel ++ v) bodies
 ;;
 
-
 let collision : body list =
   let star_mass = sun_mass *. 0.1 in
   let solar1 = mk_lots sun_mass 1000 in
@@ -176,4 +172,3 @@ let collision : body list =
   add_velocity solar2 v2;
   solar2 @ solar1
 ;;
-

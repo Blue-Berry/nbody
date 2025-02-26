@@ -424,7 +424,7 @@ let acc_by_qtree (pos1: point) (q: qtree) (bb: bounding_box) (thresh: float) : v
   | Node (c, qs) ->(
     let cm, cp = c in
     let d = pos1 --> cp |> mag in
-    if (d > thresh) && (in_bounding_box pos1 bb) then
+    if (d > thresh) && (in_bounding_box pos1 bb |> not) then
       acc_on pos1 cm cp
     else
       (* recurse on quadrants *)
