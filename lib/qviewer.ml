@@ -110,6 +110,7 @@ let run (bodies:body list) (step : step_function): unit =
              This trick is called 'currying'. *)
           step_with (step qt) bodies
       end;
+      (* Unix.sleepf 0.1; *)
       (* When running continuously, a key press exits the program.
        * After exhuasting the frame budget, a quick press will single-step
        * and a held key will exit the program. *)
@@ -125,7 +126,7 @@ let run (bodies:body list) (step : step_function): unit =
  * does the accuracy of the simulation change?
  *)
 (* ;; run planets step_slow  *)
-;; run collision step_slow 
+(* ;; run collision step_slow  *)
 
 (* You can run a solar system simulation by replacing the collision
  * command above with:
@@ -133,3 +134,4 @@ let run (bodies:body list) (step : step_function): unit =
 ;; run planets step_slow
  *)
 
+;; run collision step_slow

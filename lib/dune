@@ -3,12 +3,8 @@
  ;  (libraries graphics))
 
 (executable
- (name quadtree))
-
-
-(executable
  (name qviewer)
- (libraries graphics))
+ (libraries graphics unix))
 
 
 (executable
