@@ -552,7 +552,12 @@ let rec remarkably_similar (q1: qtree) (q2: qtree) : bool =
  * if the point [p] is not within the bounding box [bb]. 
  *)
 let qinsert_empty (q: qtree) (m: float) (p: point) (bb: bounding_box) : qtree =
-  failwith "Missing implementation for qinsert_empty."
+  if not (in_bounding_box p bb) then failwith "qinsert_empty: point not in bounding box"
+  else
+  match q with
+  | Leaf _ -> failwith "qinsert_empty: called on Leaf"
+  | Node _ -> failwith "qinsert_empty: called on Node"
+  | Empty -> Leaf (m, p)
 
 
 let test () : bool =
@@ -592,7 +597,20 @@ let test () : bool =
  * be inserted.
  *)
 let rec qinsert_node (q: qtree) (m: float) (p: point) (bb: bounding_box) : qtree =
-  failwith "Missing implementation for qinsert_node."
+  match q with
+  | Empty -> Leaf (m, p)
+  | Leaf _ -> failwith "qinsert_node: called on Leaf"
+  | Node (c, qs) ->
+      let qs =
+      match quadrant p bb with
+      | UL -> { qs with ul = qinsert_node qs.ul m p (quadrant_of UL bb) }
+      | UR -> { qs with ur = qinsert_node qs.ur m p (quadrant_of UR bb) }
+      | LL -> { qs with ll = qinsert_node qs.ll m p (quadrant_of LL bb) }
+      | LR -> { qs with lr = qinsert_node qs.lr m p (quadrant_of LR bb) }
+      in
+    Node (centroid_sum c (m, p), qs)
+
+
 
 
 let test () : bool =
@@ -628,7 +646,31 @@ let test () : bool =
  * below DO NOT test some edge cases in the [qinsert] specification. 
  *)
 let rec qinsert (q: qtree) (m: float) (p: point) (bb: bounding_box) : qtree =
-  failwith "Missing implementation for qinsert"
+  match q with
+  | Empty -> Leaf (m, p)
+  | Leaf (lm, lp) when close_enough lp p -> Leaf (m +. lm, p)
+  (* In this case a leaf needs to be split up into quadrants. And then the new Point needs to be inserted into the correct quadrant. *)
+  | Leaf (lm, lp) -> 
+      let qs = { ul = Empty; ur = Empty; ll = Empty; lr = Empty } in
+      let qs =
+      match quadrant lp bb with
+        | UL -> { qs with ul = Leaf (lm, lp) }
+        | UR -> { qs with ur = Leaf (lm, lp) }
+        | LL -> { qs with ll = Leaf (lm, lp) }
+        | LR -> { qs with lr = Leaf (lm, lp) }
+      in
+      let node = Node ((lm, lp), qs) in
+      qinsert node m p bb
+
+  | Node (c, qs) ->
+      let qs =
+        match quadrant p bb with
+      | UL -> { qs with ul = qinsert qs.ul m p (quadrant_of UL bb) }
+      | UR -> { qs with ur = qinsert qs.ur m p (quadrant_of UR bb) }
+      | LL -> { qs with ll = qinsert qs.ll m p (quadrant_of LL bb) }
+      | LR -> { qs with lr = qinsert qs.lr m p (quadrant_of LR bb) }
+in
+    Node (centroid_sum c (m, p), qs)
 
 
 (* The following test cases for qinsert correspond to the homework
