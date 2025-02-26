@@ -1,6 +1,6 @@
-; (library
-;  (name nbody)
-;  (libraries graphics))
+ ; (library
+ ;  (name nbody)
+ ;  (libraries graphics))
 
 (executable
  (name quadtree))
@@ -8,4 +8,9 @@
 
 (executable
  (name qviewer)
+ (libraries graphics))
+
+
+(executable
+ (name viewer)
  (libraries graphics))

@@ -39,6 +39,7 @@
             buildInputs = with pkgs.ocamlPackages; [
                 eio
                 graphics
+                owl
             ];
           };
 
