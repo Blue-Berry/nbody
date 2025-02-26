@@ -1,3 +1,5 @@
+[@@@ocaml.warning "-27"]
+[@@@ocaml.warning "-32"]
 (*----------------------------------------------------------------------------*)
 (*-- Viewer for quadtree based simulation ------------------------------------*)
 (*----------------------------------------------------------------------------*)
@@ -28,7 +30,7 @@ let step_body_with_acc (qt:qtree) (thresh:float) (dt:float) (b:body): unit =
    use higher-order functions to encapsulate the parameters controlling
    the tradeoff. *)
 let step_slow (qt:qtree) : body -> unit =
-  let dt = 50.0 in
+  let dt = 0.1 in
   let thresh = 1000000.0 in
   step_body_with_acc qt thresh dt
 

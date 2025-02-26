@@ -1,3 +1,5 @@
+[@@@ocaml.warning "-27"]
+[@@@ocaml.warning "-39"]
 (*----------------------------------------------------------------------------*)
 (*-- Quadtrees ---------------------------------------------------------------*)
 (*----------------------------------------------------------------------------*)
@@ -706,7 +708,7 @@ let test () : bool =
 (* FINALLY, given qinsert, we can iteratively apply it to a list of bodies to
    build a quad tree. Hint: use a higher-order function! *)
 let rec build_qtree_in (bodies: body list) (bb: bounding_box) : qtree =
-  failwith "Missing implementation for build_qtree_in"
+  HigherOrderFunctions.fold (fun (b: body) (acc: qtree) -> qinsert acc b.mass b.pos bb) Empty bodies
 
 (* Be sure to add your own tests for build_qtree_in. You should be
    able to use the trees defined above for qinsert in building your
