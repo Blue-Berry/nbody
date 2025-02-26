@@ -1,0 +1,4 @@
+(library
+ (name lqtree)
+ (libraries owl)
+ )
