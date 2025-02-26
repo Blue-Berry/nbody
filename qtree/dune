@@ -1,4 +1,7 @@
-(executable
- (name viewer)
- (libraries owl graphics))
+; (executable
+;  (name viewer)
+;  (libraries owl graphics))
 
+(library
+ (name qtree)
+ (libraries owl graphics))

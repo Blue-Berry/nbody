@@ -55,6 +55,6 @@ let run (bodies:body list) (timestep : timestep) : unit =
  *    ;; run collision step_slow
  * But, it will be too slow.
  *)
-(* ;; run planets step *)
-;; run collision step
+;; run planets step
+(* ;; run collision step *)
  

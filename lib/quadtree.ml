@@ -76,7 +76,7 @@ and quads = {
   ur: qtree;
   ll: qtree;
   lr: qtree;
-}
+} 
 
 (* Quadtrees divide up (2-dimensional) space into four quadrants called
    bounding boxes. Before we can begin working with quadtrees, it will be

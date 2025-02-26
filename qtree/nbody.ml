@@ -5,7 +5,7 @@ let ( -. ) = sub
 let ( *. ) = mul
 let ( /. ) = div
 
-type point = float * float
+type point = float * float 
 type vec = float * float
 
 let displace ((x, y) : point) ((dx, dy) : vec) : point = x +. dx, y +. dy

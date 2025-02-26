@@ -124,7 +124,8 @@ let run (bodies:body list) (step : step_function): unit =
 (* Try changing the parameter to step_fast;
  * does the accuracy of the simulation change?
  *)
-;; run planets step_slow 
+(* ;; run planets step_slow  *)
+;; run collision step_slow 
 
 (* You can run a solar system simulation by replacing the collision
  * command above with:
