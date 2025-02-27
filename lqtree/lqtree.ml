@@ -124,12 +124,6 @@ module Node = struct
     let a_child, b_child = a.children, b.children in
     let a_next, b_next = a.next, b.next in
     let a_bbox, b_bbox = a.bbox, b.bbox in
-    Printf.printf
-      "Node equalities: centroid: %b; bbox: %b; children: %b; next: %b\n"
-      (same_centroid a.centroid b.centroid)
-      (same_bbox a_bbox b_bbox)
-      (a_child = b_child)
-      (a_next = b_next);
     let result =
       (same_centroid a.centroid b.centroid && same_bbox a_bbox b_bbox)
       && a_child = b_child
@@ -154,6 +148,11 @@ module Qtree = struct
 
   let capacity = 10
 
+  let get_node (qt : t) (idx : int) : Node.t =
+    assert (idx <= Dynarray.length qt.nodes);
+    Dynarray.get qt.nodes idx
+  ;;
+
   let new_t (bbox : Bbox.t) =
     let nodes = Dynarray.create () in
     Dynarray.set_capacity nodes capacity;
@@ -164,7 +163,7 @@ module Qtree = struct
 
   let subdivide (qt : t) (node_idx : int) : int =
     let children = qt.nodes |> Dynarray.length in
-    let node = Dynarray.get qt.nodes node_idx in
+    let node = get_node qt node_idx in
     assert (Node.(node_type node != Node));
     Dynarray.set qt.nodes node_idx { node with children };
     let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
@@ -179,7 +178,7 @@ module Qtree = struct
 
   let subdivide_leaf (qt : t) (node_idx : int) : int =
     let children = qt.nodes |> Dynarray.length in
-    let node = Dynarray.get qt.nodes node_idx in
+    let node = get_node qt node_idx in
     assert (Node.(node_type node = Leaf));
     let lm, lp = node.centroid in
     Dynarray.set qt.nodes node_idx { node with children };
@@ -193,19 +192,19 @@ module Qtree = struct
   ;;
 
   let acc_by_qtree (pos1 : point) (q : t) (thresh : float) : vec =
+    let node_check pos1 cp thresh bbox =
+      pos1 --> cp |> mag > thresh && (not @@ Bbox.contains_point pos1 bbox)
+    in
     let rec aux (q : t) (node_idx : int) (acc : vec) : vec =
-      let node = Dynarray.get q.nodes node_idx in
-      Printf.printf
-        "Acceleartion by Node %s\n"
-        (Node.sexp_of_t node |> Sexplib.Sexp.to_string_hum);
+      let node = get_node q node_idx in
       let cm, cp = node.centroid in
       match Node.node_type node with
       | Empty when node.next = 0 -> acc
       | Empty -> aux q node.next acc
       | Leaf when node.next = 0 -> acc ++ acc_on pos1 cm cp
       | Leaf -> aux q node.next (acc ++ acc_on pos1 cm cp)
-      | Node when pos1 --> cp |> mag > thresh && node.next = 0 -> acc ++ acc_on pos1 cm cp
-      | Node when pos1 --> cp |> mag > thresh -> aux q node.next (acc ++ acc_on pos1 cm cp)
+      | Node when node_check pos1 cp thresh node.bbox && node.next = 0 -> acc ++ acc_on pos1 cm cp
+      | Node when node_check pos1 cp thresh node.bbox -> aux q node.next (acc ++ acc_on pos1 cm cp)
       | Node -> aux q node.children acc
     in
     aux q 0 zero
@@ -213,7 +212,7 @@ module Qtree = struct
 
   let insert (qt : t) ((m, pos) : centroid) =
     let rec aux (q : t) (node_idx : int) =
-      let node = Dynarray.get q.nodes node_idx in
+      let node = get_node q node_idx in
       match Node.node_type node with
       | Node ->
         let i = Quadrant.contains pos node.bbox |> Quadrant.to_index in
@@ -239,5 +238,15 @@ module Qtree = struct
           aux q (children + q_idx))
     in
     aux qt 0
+  ;;
+
+  let build_qtree_in (bodies : body list) (bb : Bbox.t) : t =
+    let q = new_t bb in
+    List.iter
+      (fun b ->
+         let cen : centroid = b.mass, b.pos in
+         insert q cen)
+      bodies;
+    q
   ;;
 end

@@ -1,5 +1,5 @@
 (library
  (name lqtree)
- (libraries owl)
+ (libraries owl graphics)
  (preprocess
   (pps ppx_jane)))

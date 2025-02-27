@@ -247,7 +247,6 @@ let test_accel_zero () =
 let test_accel1 () =
   let qt_test = Qtree.new_t test_bbox in
   To_test.insert qt_test (10000000.0, (2.0, 3.0));
-  Printf.printf "Tree: %s\n" (qt_test |> Qtree.sexp_of_t |> Sexplib.Sexp.to_string_hum);
   let accel = To_test.acc_by_qtree (2.0, 2.0) qt_test 0.0 in
   Alcotest.(check bool) "Acceleration by leaf" true (accel = (0.0, 0.000667428))
 ;;

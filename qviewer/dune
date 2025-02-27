@@ -1,0 +1,3 @@
+(executable
+ (name qviewer)
+ (libraries lqtree graphics))
