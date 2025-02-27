@@ -41,6 +41,7 @@
                 graphics
                 owl
                 ppx_jane
+                alcotest
             ];
           };
 

@@ -1,0 +1,3 @@
+(test
+ (name lqtree_test)
+ (libraries lqtree alcotest))
