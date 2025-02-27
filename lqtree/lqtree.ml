@@ -103,6 +103,7 @@ module Node = struct
     | Node
 
   let node_type (node : t) : kind =
+    (* Hostspot *)
     match node.centroid with
     | 0.0, _ -> Empty
     | _ ->
@@ -151,6 +152,7 @@ module Qtree = struct
   let get_node (qt : t) (idx : int) : Node.t =
     assert (idx <= Dynarray.length qt.nodes);
     Dynarray.get qt.nodes idx
+    [@@inline]
   ;;
 
   let new_t (bbox : Bbox.t) =
@@ -195,31 +197,31 @@ module Qtree = struct
     let node_check pos1 cp thresh bbox =
       pos1 --> cp |> mag > thresh && (not @@ Bbox.contains_point pos1 bbox)
     in
-    let rec aux (q : t) (node_idx : int) (acc : vec) : vec =
+    let rec acc_aux (q : t) (node_idx : int) (acc : vec) : vec =
       let node = get_node q node_idx in
       let cm, cp = node.centroid in
       match Node.node_type node with
       | Empty when node.next = 0 -> acc
-      | Empty -> aux q node.next acc
+      | Empty -> acc_aux q node.next acc
       | Leaf when node.next = 0 -> acc ++ acc_on pos1 cm cp
-      | Leaf -> aux q node.next (acc ++ acc_on pos1 cm cp)
+      | Leaf -> acc_aux q node.next (acc ++ acc_on pos1 cm cp)
       | Node when node_check pos1 cp thresh node.bbox && node.next = 0 ->
         acc ++ acc_on pos1 cm cp
       | Node when node_check pos1 cp thresh node.bbox ->
-        aux q node.next (acc ++ acc_on pos1 cm cp)
-      | Node -> aux q node.children acc
+        acc_aux q node.next (acc ++ acc_on pos1 cm cp)
+      | Node -> acc_aux q node.children acc
     in
-    aux q 0 zero
+    acc_aux q 0 zero
   ;;
 
   let insert (qt : t) ((m, pos) : centroid) =
-    let rec aux (q : t) (node_idx : int) =
+    let rec insert_aux (q : t) (node_idx : int) =
       let node = get_node q node_idx in
       match Node.node_type node with
       | Node ->
         let i = Quadrant.contains pos node.bbox |> Quadrant.to_index in
         node.centroid <- centroid_sum node.centroid (m, pos);
-        aux q (node.children + i)
+        insert_aux q (node.children + i)
       | Empty ->
         node.centroid <- m, pos;
         Dynarray.set q.nodes node_idx node
@@ -237,9 +239,9 @@ module Qtree = struct
           node.children <- children;
           Dynarray.set q.nodes node_idx node;
           let q_idx = Quadrant.contains pos node.bbox |> Quadrant.to_index in
-          aux q (children + q_idx))
+          insert_aux q (children + q_idx))
     in
-    aux qt 0
+    insert_aux qt 0
   ;;
 
   let build_qtree_in (bodies : body list) (bb : Bbox.t) : t =

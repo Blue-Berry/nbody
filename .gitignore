@@ -3,3 +3,4 @@ _build
 nbody.install
 perf.data
 perf.data.old
+flamegraph.svg
