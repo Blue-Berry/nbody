@@ -146,6 +146,11 @@ end
 module Qtree = struct
   type t = { nodes : Node.t Dynarray.t }
 
+  let sexp_of_t qt =
+    let nodes = Dynarray.to_list qt.nodes in
+    Sexplib.Std.sexp_of_list Node.sexp_of_t nodes
+  ;;
+
   let capacity = 10
 
   let new_t (bbox : Bbox.t) =

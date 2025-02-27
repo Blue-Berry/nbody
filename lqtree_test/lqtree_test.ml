@@ -140,11 +140,15 @@ let test_insert2 () =
     Dynarray.add_last qt.nodes node;
     qt
   in
+  Printf.printf "qt_test: %s\n" (Qtree.sexp_of_t qt_test |> Sexplib.Sexp.to_string_hum);
   Qtree.insert leaf (1.0, (2.5, 2.5));
   for i = 0 to Dynarray.length qt_test.nodes - 1 do
-    let node = Dynarray.get qt_test.nodes i in
-    let t_node = Dynarray.get leaf.nodes i in
-    Alcotest.(check bool) "Nodes are the same" true (Node.equal node t_node)
+    let example_node = Dynarray.get qt_test.nodes i in
+    let node = Dynarray.get leaf.nodes i in
+    Alcotest.(check bool)
+      ("Node " ^ string_of_int i ^ " are the same")
+      true
+      (Node.equal node example_node)
   done
 ;;
 
