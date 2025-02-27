@@ -25,7 +25,6 @@ let step_slow (qt : Qtree.t) : body -> unit =
   step_body_with_acc qt thresh dt
 ;;
 
-
 (* Define a few constants we use for the display. *)
 let dim = 1000
 
@@ -41,21 +40,20 @@ let draw_centroid (m : float) (x : float) (y : float) (c : color) : unit =
   fill_circle px py r
 ;;
 
-let rec draw_qtree (q : Qtree.t) (node_idx: int) (c : int) : unit =
+let rec draw_qtree (q : Qtree.t) (node_idx : int) (c : int) : unit =
   let node = Qtree.get_node q node_idx in
   match Node.node_type node with
-  | Empty when node.next = 0 -> () 
-  | Empty -> 
-      draw_qtree q (node.next) c
-  | Leaf when node.next = 0  ->
-      let m, (x,y) = node.centroid in
-      draw_centroid m x y white
+  | Empty when node.next = 0 -> ()
+  | Empty -> draw_qtree q node.next c
+  | Leaf when node.next = 0 ->
+    let m, (x, y) = node.centroid in
+    draw_centroid m x y white
   | Leaf ->
-      let m, (x,y) = node.centroid in
-      draw_centroid m x y white;
-      draw_qtree q (node.next) c
+    let m, (x, y) = node.centroid in
+    draw_centroid m x y white;
+    draw_qtree q node.next c
   | Node (*(m, (x, y)), quads*) ->
-      let bb = node.bbox in
+    let bb = node.bbox in
     let midx = float_to_screen (midx bb) in
     let midy = float_to_screen (midy bb) in
     set_color blue;
@@ -102,6 +100,7 @@ let run (bodies : body list) (step : step_function) : unit =
              the second argument: ((step qt) : body -> unit).
              This trick is called 'currying'. *)
     step_with (step qt) bodies;
+    Unix.sleepf 0.05;
     (* When running continuously, a key press exits the program.
        * After exhuasting the frame budget, a quick press will single-step
        * and a held key will exit the program. *)

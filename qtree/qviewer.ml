@@ -28,7 +28,6 @@ let step_slow (qt : qtree) : body -> unit =
   step_body_with_acc qt thresh dt
 ;;
 
-
 (* Define a few constants we use for the display. *)
 let dim = 1000
 

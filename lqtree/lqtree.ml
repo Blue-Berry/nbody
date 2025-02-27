@@ -203,8 +203,10 @@ module Qtree = struct
       | Empty -> aux q node.next acc
       | Leaf when node.next = 0 -> acc ++ acc_on pos1 cm cp
       | Leaf -> aux q node.next (acc ++ acc_on pos1 cm cp)
-      | Node when node_check pos1 cp thresh node.bbox && node.next = 0 -> acc ++ acc_on pos1 cm cp
-      | Node when node_check pos1 cp thresh node.bbox -> aux q node.next (acc ++ acc_on pos1 cm cp)
+      | Node when node_check pos1 cp thresh node.bbox && node.next = 0 ->
+        acc ++ acc_on pos1 cm cp
+      | Node when node_check pos1 cp thresh node.bbox ->
+        aux q node.next (acc ++ acc_on pos1 cm cp)
       | Node -> aux q node.children acc
     in
     aux q 0 zero
@@ -249,4 +251,6 @@ module Qtree = struct
       bodies;
     q
   ;;
+
+  let clear (q : t) : unit = Dynarray.clear q.nodes
 end
