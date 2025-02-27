@@ -9,9 +9,9 @@ let zero_c = 0.0, (0.0, 0.0)
 
 (* Root is index 0, UL is index 1, UR is index 2, LL is index 3, LR is index 4 *)
 let t_q0 =
-  let open Lqtree.Quadrant in
-  let open Lqtree.Node in
-  let open Lqtree.Qtree in
+  let open Quadrant in
+  let open Node in
+  let open Qtree in
   let ul = new_node zero_c (to_bbox UL test_bbox) in
   ul.next <- 2;
   let ur = new_node zero_c (to_bbox UR test_bbox) in
@@ -46,21 +46,21 @@ let t_q0 =
 
 let test_divide1 () =
   let open Lqtree in
-  let t = Qtree.{ nodes = Dynarray.create () } in
+  let qt = Qtree.{ nodes = Dynarray.create () } in
   let node = Node.new_node (1.0, (1.5, 1.5)) test_bbox in
-  Dynarray.add_last t.nodes node;
-  let children = To_test.subdivide t 0 in
+  Dynarray.add_last qt.nodes node;
+  let children = To_test.subdivide qt 0 in
   Alcotest.(check int) "Children start at 1" 1 children
 ;;
 
 let test_divide2 () =
   let open Lqtree in
-  let t = Qtree.{ nodes = Dynarray.create () } in
+  let qt = Qtree.{ nodes = Dynarray.create () } in
   let node = Node.new_node (1.0, (1.5, 1.5)) test_bbox in
-  Dynarray.add_last t.nodes node;
-  let _ = To_test.subdivide t 0 in
-  for i = 0 to Dynarray.length t.nodes - 1 do
-    let node = Dynarray.get t.nodes i in
+  Dynarray.add_last qt.nodes node;
+  let _ = To_test.subdivide qt 0 in
+  for i = 0 to Dynarray.length qt.nodes - 1 do
+    let node = Dynarray.get qt.nodes i in
     let t_node = Dynarray.get t_q0.nodes i in
     Alcotest.(check bool) "Nodes are the same" true (Node.equal node t_node)
   done
@@ -71,12 +71,39 @@ let test_divide2 () =
     - insert into leaf
     - insert into node*)
 
+(*
+   ┌──────┐   
+    │ Root │   
+    └──┬───┘   
+       │       
+       ▼       
+   1 (1.5;1.5)
+*)
+let test_insert1 () =
+  let open Lqtree in
+  let qt_test =
+    let qt = Qtree.{ nodes = Dynarray.create () } in
+    let node = Node.new_node (1.0, (1.5, 1.5)) test_bbox in
+    Dynarray.add_last qt.nodes node;
+    qt
+  in
+  let qt = Qtree.new_t test_bbox in
+  Qtree.insert qt (1.0, (1.5, 1.5));
+  for i = 0 to Dynarray.length qt.nodes - 1 do
+    let node = Dynarray.get qt.nodes i in
+    let t_node = Dynarray.get qt_test.nodes i in
+    Alcotest.(check bool) "Nodes are the same" true (Node.equal node t_node)
+  done
+;;
+
 let () =
   let open Alcotest in
   run
     "Lqtree"
-    [ ( "lqtree_test_divide_children"
-      , [ test_case "Children start at 1" `Quick test_divide1 ] )
-    ; "lqtree_test_divide", [ test_case "Nodes are the same" `Quick test_divide2 ]
+    [ ( "subdivide"
+      , [ test_case "Children start at 1" `Quick test_divide1
+        ; test_case "Nodes are the same" `Quick test_divide2
+        ] )
+    ; "insert", [ test_case "Nodes are the same" `Quick test_insert1 ]
     ]
 ;;

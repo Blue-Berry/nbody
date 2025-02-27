@@ -133,11 +133,19 @@ module Node = struct
 end
 
 module Qtree = struct
-  (* TODO: Set capacity *)
+  type t = { nodes : Node.t Dynarray.t }
 
-  type qtree = { nodes : Node.t Dynarray.t }
+  let capacity = 10
 
-  let subdivide (qt : qtree) (node_idx : int) : int =
+  let new_t (bbox: Bbox.t) = 
+    let nodes = Dynarray.create () in
+    Dynarray.set_capacity nodes capacity;
+    let node = Node.new_node (0.0, zero) bbox in
+    Dynarray.add_last nodes node;
+    { nodes }
+  ;;
+
+  let subdivide (qt : t) (node_idx : int) : int =
     let children = qt.nodes |> Dynarray.length in
     let node = Dynarray.get qt.nodes node_idx in
     assert Node.(node_type node != Node);
@@ -152,7 +160,7 @@ module Qtree = struct
     children
   ;;
 
-  let subdivide_leaf (qt : qtree) (node_idx : int) : int =
+  let subdivide_leaf (qt : t) (node_idx : int) : int =
     let children = qt.nodes |> Dynarray.length in
     let node = Dynarray.get qt.nodes node_idx in
     assert (Node.(node_type node = Leaf));
@@ -173,8 +181,8 @@ module Qtree = struct
   ;;
 
   (* Calculate the bounding box if decebging divide the bounding box into quadrants if ascending multiple the bounding box *)
-  let acc_by_qtree (pos1 : point) (q : qtree) (thresh : float) : vec =
-    let rec aux (q : qtree) (node_idx : int) (acc : vec) : vec =
+  let acc_by_qtree (pos1 : point) (q : t) (thresh : float) : vec =
+    let rec aux (q : t) (node_idx : int) (acc : vec) : vec =
       let node = Dynarray.get q.nodes node_idx in
       if node.next = 0
       then acc
@@ -191,8 +199,8 @@ module Qtree = struct
   ;;
 
   (* TODO: calculate new centroid *)
-  let insert (qt : qtree) ((m, pos) : centroid) =
-    let rec aux (q : qtree) (node_idx : int) =
+  let insert (qt : t) ((m, pos) : centroid) =
+    let rec aux (q : t) (node_idx : int) =
       let node = Dynarray.get q.nodes node_idx in
       match Node.node_type node with
       | Node ->
