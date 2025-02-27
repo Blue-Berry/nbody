@@ -78,137 +78,141 @@ module Quadrant = struct
   ;;
 end
 
-(** node of the quadtree
+module Node = struct
+  (** node of the quadtree
 
-[centroid] is the centroid of the quadtree
-[children] is the index of the first child in the qtree array
-*)
-type node =
-  { mutable centroid : centroid
-  ; mutable children : int
-  ; mutable next : int
-  ; bbox : Bbox.t
-  }
+  [centroid] is the centroid of the quadtree
+  [children] is the index of the first child in the qtree array
+  *)
+  type t =
+    { mutable centroid : centroid
+    ; mutable children : int
+    ; mutable next : int
+    ; bbox : Bbox.t
+    }
 
-let new_node centroid bbox = { centroid; children = 0; next = 0; bbox }
+  let new_node centroid bbox = { centroid; children = 0; next = 0; bbox }
 
-type node_type =
-  | Empty
-  | Leaf
-  | Node
+  type kind =
+    | Empty
+    | Leaf
+    | Node
 
-type qtree = { nodes : node Dynarray.t }
+  let node_type (node : t) : kind =
+    match node.centroid with
+    | 0.0, _ -> Empty
+    | _ ->
+      (match node.children with
+       | 0 -> Leaf
+       | _ -> Node)
+  ;;
 
-(* TODO: Set capacity *)
-let new_lqtree () = { nodes = Dynarray.create () }
+  let equal (a : t) (b : t) =
+    let same_centroid (a_cm, a_cp) (b_cm, b_cp) =
+      close_enough a_cp b_cp && a_cm -. b_cm < 0.00001
+    in
+    let same_bbox (a_bbox : Bbox.t) (b_bbox : Bbox.t) =
+      a_bbox.miny -. b_bbox.miny < 0.00001
+      && a_bbox.maxy -. b_bbox.maxy < 0.00001
+      && a_bbox.minx -. b_bbox.minx < 0.00001
+      && a_bbox.maxx -. b_bbox.maxx < 0.00001
+    in
+    let a_child, b_child = a.children, b.children in
+    let a_next, b_next = a.next, b.next in
+    let a_bbox, b_bbox = a.bbox, b.bbox in
+    Printf.printf
+      "Node equalities: centroid: %b; bbox: %b; children: %b; next: %b\n"
+      (same_centroid a.centroid b.centroid)
+      (same_bbox a_bbox b_bbox)
+      (a_child = b_child)
+      (a_next = b_next);
+    (same_centroid a.centroid b.centroid && same_bbox a_bbox b_bbox)
+    && a_child = b_child
+    && a_next = b_next
+  ;;
+end
 
-let node_type (node : node) : node_type =
-  match node.centroid with
-  | 0.0, _ -> Empty
-  | _ ->
-    (match node.children with
-     | 0 -> Leaf
-     | _ -> Node)
-;;
+module Qtree = struct
+  (* TODO: Set capacity *)
 
-let subdivide (qt : qtree) (node_idx : int) : int =
-  let children = qt.nodes |> Dynarray.length in
-  let node = Dynarray.get qt.nodes node_idx in
-  assert (node_type node != Node);
-  Dynarray.set qt.nodes node_idx { node with children };
-  let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
-  for i = 0 to 3 do
-    let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
-    Dynarray.add_last
-      qt.nodes
-      { centroid = 0.0, zero; children = 0; next = next_nodes.(i); bbox }
-  done;
-  children
-;;
+  type qtree = { nodes : Node.t Dynarray.t }
 
-let subdivide_leaf (qt : qtree) (node_idx : int) : int =
-  let children = qt.nodes |> Dynarray.length in
-  let node = Dynarray.get qt.nodes node_idx in
-  assert (node_type node = Leaf);
-  let lm, lp = node.centroid in
-  Dynarray.set qt.nodes node_idx { node with children };
-  let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
-  for i = 0 to 3 do
-    let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
-    Dynarray.add_last
-      qt.nodes
-      { centroid = (if Bbox.contains_point lp bbox then lm, lp else 0.0, zero)
-      ; children = 0
-      ; next = next_nodes.(i)
-      ; bbox
-      }
-  done;
-  children
-;;
+  let subdivide (qt : qtree) (node_idx : int) : int =
+    let children = qt.nodes |> Dynarray.length in
+    let node = Dynarray.get qt.nodes node_idx in
+    assert Node.(node_type node != Node);
+    Dynarray.set qt.nodes node_idx { node with children };
+    let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
+    for i = 0 to 3 do
+      let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
+      Dynarray.add_last
+        qt.nodes
+        { centroid = 0.0, zero; children = 0; next = next_nodes.(i); bbox }
+    done;
+    children
+  ;;
 
-(* Calculate the bounding box if decebging divide the bounding box into quadrants if ascending multiple the bounding box *)
-let acc_by_qtree (pos1 : point) (q : qtree) (thresh : float) : vec =
-  let rec aux (q : qtree) (node_idx : int) (acc : vec) : vec =
-    let node = Dynarray.get q.nodes node_idx in
-    if node.next = 0
-    then acc
-    else (
-      let cm, cp = node.centroid in
-      (* TODO: Calculate bounding box of node *)
-      match node_type node with
-      | Empty -> aux q node.next acc
-      | Leaf -> aux q node.next (acc_on pos1 cm cp)
-      | Node when pos1 --> cp |> mag > thresh -> acc_on pos1 cm cp
-      | Node -> aux q node.children acc)
-  in
-  aux q 0 zero
-;;
+  let subdivide_leaf (qt : qtree) (node_idx : int) : int =
+    let children = qt.nodes |> Dynarray.length in
+    let node = Dynarray.get qt.nodes node_idx in
+    assert (Node.(node_type node = Leaf));
+    let lm, lp = node.centroid in
+    Dynarray.set qt.nodes node_idx { node with children };
+    let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
+    for i = 0 to 3 do
+      let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
+      Dynarray.add_last
+        qt.nodes
+        { centroid = (if Bbox.contains_point lp bbox then lm, lp else 0.0, zero)
+        ; children = 0
+        ; next = next_nodes.(i)
+        ; bbox
+        }
+    done;
+    children
+  ;;
 
-(* TODO: calculate new centroid *)
-let insert (qt : qtree) ((m, pos) : centroid) =
-  let rec aux (q : qtree) (node_idx : int) =
-    let node = Dynarray.get q.nodes node_idx in
-    match node_type node with
-    | Node ->
-      let i = Quadrant.contains pos node.bbox |> Quadrant.to_index in
-      aux q (node.children + i)
-    | Empty ->
-      node.centroid <- m, pos;
-      Dynarray.set q.nodes node_idx node
-    | Leaf ->
-      let cm, cp = node.centroid in
-      if close_enough cp pos
-      then (
-        node.centroid <- m +. cm, pos;
-        Dynarray.set q.nodes node_idx node)
+  (* Calculate the bounding box if decebging divide the bounding box into quadrants if ascending multiple the bounding box *)
+  let acc_by_qtree (pos1 : point) (q : qtree) (thresh : float) : vec =
+    let rec aux (q : qtree) (node_idx : int) (acc : vec) : vec =
+      let node = Dynarray.get q.nodes node_idx in
+      if node.next = 0
+      then acc
       else (
-        let children = subdivide_leaf q node_idx in
-        let q_idx = Quadrant.contains pos node.bbox |> Quadrant.to_index in
-        aux q (children + q_idx))
-  in
-  aux qt 0
-;;
+        let cm, cp = node.centroid in
+        (* TODO: Calculate bounding box of node *)
+        match Node.node_type node with
+        | Empty -> aux q node.next acc
+        | Leaf -> aux q node.next (acc_on pos1 cm cp)
+        | Node when pos1 --> cp |> mag > thresh -> acc_on pos1 cm cp
+        | Node -> aux q node.children acc)
+    in
+    aux q 0 zero
+  ;;
 
-let same_node (a : node) (b : node) =
-  let same_centroid (a_cm, a_cp) (b_cm, b_cp) =
-    close_enough a_cp b_cp && a_cm -. b_cm < 0.00001
-  in
-  let same_bbox (a_bbox : Bbox.t) (b_bbox : Bbox.t) =
-    a_bbox.miny -. b_bbox.miny < 0.00001
-    && a_bbox.maxy -. b_bbox.maxy < 0.00001
-    && a_bbox.minx -. b_bbox.minx < 0.00001
-    && a_bbox.maxx -. b_bbox.maxx < 0.00001
-  in
-  let a_child, b_child = a.children, b.children in
-  let a_next, b_next = a.next, b.next in
-  let a_bbox, b_bbox = a.bbox, b.bbox in
-  Printf.printf
-    "Node equalities: centroid: %b; bbox: %b; children: %b; next: %b\n"
-    (same_centroid a.centroid b.centroid)
-    (same_bbox a_bbox b_bbox)
-    (a_child = b_child)
-    (a_next = b_next);
-  (same_centroid a.centroid b.centroid && same_bbox a_bbox b_bbox)
-  && a_child = b_child
-  && a_next = b_next
-;;
+  (* TODO: calculate new centroid *)
+  let insert (qt : qtree) ((m, pos) : centroid) =
+    let rec aux (q : qtree) (node_idx : int) =
+      let node = Dynarray.get q.nodes node_idx in
+      match Node.node_type node with
+      | Node ->
+        let i = Quadrant.contains pos node.bbox |> Quadrant.to_index in
+        node.centroid <- centroid_sum node.centroid (m, pos);
+        aux q (node.children + i)
+      | Empty ->
+        node.centroid <- m, pos;
+        Dynarray.set q.nodes node_idx node
+      | Leaf ->
+        let cm, cp = node.centroid in
+        if close_enough cp pos
+        then (
+          node.centroid <- m +. cm, pos;
+          Dynarray.set q.nodes node_idx node)
+        else (
+          let children = subdivide_leaf q node_idx in
+          let q_idx = Quadrant.contains pos node.bbox |> Quadrant.to_index in
+          aux q (children + q_idx))
+    in
+    aux qt 0
+  ;;
+end
