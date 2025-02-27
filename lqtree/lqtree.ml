@@ -185,14 +185,8 @@ module Qtree = struct
     let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
     for i = 0 to 3 do
       let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
-      let centroid = (if Bbox.contains_point lp bbox then lm, lp else 0.0, zero) in
-      Dynarray.add_last
-        qt.nodes
-        { centroid
-        ; children = 0
-        ; next = next_nodes.(i)
-        ; bbox
-        }
+      let centroid = if Bbox.contains_point lp bbox then lm, lp else 0.0, zero in
+      Dynarray.add_last qt.nodes { centroid; children = 0; next = next_nodes.(i); bbox }
     done;
     children
   ;;
@@ -200,16 +194,19 @@ module Qtree = struct
   let acc_by_qtree (pos1 : point) (q : t) (thresh : float) : vec =
     let rec aux (q : t) (node_idx : int) (acc : vec) : vec =
       let node = Dynarray.get q.nodes node_idx in
-      Printf.printf "Acceleartion by Node %s\n" (Node.sexp_of_t node |> Sexplib.Sexp.to_string_hum);
-        let cm, cp = node.centroid in
-        match Node.node_type node with
-        | Empty when node.next = 0 -> acc
-        | Empty -> aux q node.next acc
-        | Leaf when node.next = 0 -> acc ++ acc_on pos1 cm cp
-        | Leaf -> aux q node.next (acc ++ acc_on pos1 cm cp)
-        | Node when (pos1 --> cp |> mag > thresh) && (node.next = 0) -> aux q node.next (acc ++ acc_on pos1 cm cp)
-        | Node when (pos1 --> cp |> mag > thresh) -> (acc ++ acc_on pos1 cm cp)
-        | Node -> aux q node.children acc
+      Printf.printf
+        "Acceleartion by Node %s\n"
+        (Node.sexp_of_t node |> Sexplib.Sexp.to_string_hum);
+      let cm, cp = node.centroid in
+      match Node.node_type node with
+      | Empty when node.next = 0 -> acc
+      | Empty -> aux q node.next acc
+      | Leaf when node.next = 0 -> acc ++ acc_on pos1 cm cp
+      | Leaf -> aux q node.next (acc ++ acc_on pos1 cm cp)
+      | Node when pos1 --> cp |> mag > thresh && node.next = 0 ->
+        aux q node.next (acc ++ acc_on pos1 cm cp)
+      | Node when pos1 --> cp |> mag > thresh -> acc ++ acc_on pos1 cm cp
+      | Node -> aux q node.children acc
     in
     aux q 0 zero
   ;;
@@ -234,7 +231,7 @@ module Qtree = struct
         else (
           (* Convert leaf to node. calculate new centroid, split into quadrants, and recurse. *)
           let children = subdivide_leaf q node_idx in
-          let new_centroid =centroid_sum node.centroid (m, pos) in
+          let new_centroid = centroid_sum node.centroid (m, pos) in
           node.centroid <- new_centroid;
           node.children <- children;
           Dynarray.set q.nodes node_idx node;

@@ -250,7 +250,7 @@ let test_accel1 () =
   Printf.printf "Tree: %s\n" (qt_test |> Qtree.sexp_of_t |> Sexplib.Sexp.to_string_hum);
   let accel = To_test.acc_by_qtree (2.0, 2.0) qt_test 0.0 in
   let ax, ay = accel in
-  Printf.printf "accel = %f, %f\n"  ax ay;
+  Printf.printf "accel = %f, %f\n" ax ay;
   Alcotest.(check bool) "Acceleration by leaf" true (accel = (0.0, 0.000667428))
 ;;
 
