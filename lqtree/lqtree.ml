@@ -205,7 +205,6 @@ module Qtree = struct
       then acc
       else (
         let cm, cp = node.centroid in
-        (* TODO: Calculate bounding box of node *)
         match Node.node_type node with
         | Empty -> aux q node.next acc
         | Leaf -> aux q node.next (acc_on pos1 cm cp)
