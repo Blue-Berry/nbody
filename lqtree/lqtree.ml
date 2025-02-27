@@ -1,11 +1,11 @@
 open Owl.Maths
+module Nbody = Nbody
 open Nbody
 open Sexplib.Std
 
 let ( +. ) = add
 let ( -. ) = sub
 let ( /. ) = div
-let close_enough = Nbody.close_enough
 
 type centroid = float * Nbody.point [@@deriving sexp_of]
 

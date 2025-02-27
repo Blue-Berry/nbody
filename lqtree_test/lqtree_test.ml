@@ -278,13 +278,13 @@ let qtree =
 let test_accel2 () =
   let acc = To_test.acc_by_qtree (5.0, 2.0) qtree 2.236 in
   let acc_test = -0.00014739893883543214, 7.36994694177160698e-05 in
-  Alcotest.(check bool) "Acceleration by Node" true (close_enough acc acc_test)
+  Alcotest.(check bool) "Acceleration by Node" true (Nbody.close_enough acc acc_test)
 ;;
 
 let test_accel3 () =
   let acc = To_test.acc_by_qtree (5.0, 2.0) qtree 0.0 in
   let acc_test = -0.000823985117618399889, 0. in
-  Alcotest.(check bool) "Acceleration by Node" true (close_enough acc acc_test)
+  Alcotest.(check bool) "Acceleration by Node" true (Nbody.close_enough acc acc_test)
 ;;
 
 let () =
