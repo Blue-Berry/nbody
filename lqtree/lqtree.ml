@@ -146,7 +146,7 @@ module Qtree = struct
     Sexplib.Std.sexp_of_list Node.sexp_of_t nodes
   ;;
 
-  let capacity = 10
+  let capacity = 1000
 
   let get_node (qt : t) (idx : int) : Node.t =
     assert (idx <= Dynarray.length qt.nodes);
@@ -250,6 +250,14 @@ module Qtree = struct
          insert q cen)
       bodies;
     q
+  ;;
+
+  let populate (qt : t) (bodies : body list) : unit =
+    List.iter
+      (fun b ->
+         let cen : centroid = b.mass, b.pos in
+         insert qt cen)
+      bodies
   ;;
 
   let clear (q : t) : unit = Dynarray.clear q.nodes

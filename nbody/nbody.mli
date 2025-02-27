@@ -6,7 +6,6 @@ val ( /. ) : float -> float -> float
 type point = float * float
 type vec = float * float
 
-
 val sexp_of_point : point -> Sexplib0.Sexp.t
 val sexp_of_vec : vec -> Sexplib0.Sexp.t
 val displace : point -> vec -> point

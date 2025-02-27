@@ -6,6 +6,6 @@
 
 (library
  (name qtree)
-(libraries owl graphics nbody)
-(preprocess
+ (libraries owl graphics nbody)
+ (preprocess
   (pps ppx_jane)))

@@ -1,5 +1,7 @@
 (library
  (name lqtree)
  (libraries owl graphics nbody)
+ (ocamlopt_flags
+  (:standard -O3 -S))
  (preprocess
   (pps ppx_jane)))

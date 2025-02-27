@@ -5,4 +5,3 @@
 (executable
  (name qviewer)
  (libraries qtree nbody graphics unix))
-

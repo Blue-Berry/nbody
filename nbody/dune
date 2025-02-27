@@ -2,6 +2,5 @@
  (public_name nbody)
  (name nbody)
  (libraries owl)
-(preprocess
-  (pps ppx_jane))
-)
+ (preprocess
+  (pps ppx_jane)))
