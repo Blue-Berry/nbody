@@ -14,16 +14,18 @@ let displace ((x, y) : point) ((dx, dy) : vec) : point = x +. dx, y +. dy
 [@@inline always]
 ;;
 
-let mag_squared ((x, y) : vec) : float = sqr x +. sqr y [@@inline always]
-let mag ((x, y) : vec) : float = hypot x y [@@inline always]
-let ( *$ ) (c : float) ((x1, y1) : vec) : vec = c *. x1, c *. y1 [@@inline always]
-let unit_vec (v : vec) : vec = 1.0 /. mag v *$ v [@@inline always]
+let mag_squared ((x, y) : vec) : float = sqr x +. sqr y [@@inline ]
+let mag (v: vec) : float = sqrt (mag_squared v)
+(* let mag ((x, y) : vec) : float = hypot x y [@@inline ] *)
+
+let ( *$ ) (c : float) ((x1, y1) : vec) : vec = c *. x1, c *. y1 [@@inline ]
+let unit_vec (v : vec) : vec = 1.0 /. mag v *$ v [@@inline ]
 
 let ( --> ) ((x1, y1) : point) ((x2, y2) : point) : vec = x2 -. x1, y2 -. y1
-[@@inline always]
+[@@inline ]
 ;;
 
-let ( ++ ) ((x1, y1) : vec) ((x2, y2) : vec) : vec = x1 +. x2, y1 +. y2 [@@inline always]
+let ( ++ ) ((x1, y1) : vec) ((x2, y2) : vec) : vec = x1 +. x2, y1 +. y2 [@@inline ]
 let zero : vec = 0.0, 0.0
 
 let close_enough (p1 : float * float) (p2 : float * float) : bool =

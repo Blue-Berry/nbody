@@ -102,10 +102,11 @@ module Node = struct
     | Leaf
     | Node
 
+    (* Hotspot *)
   let node_type (node : t) : kind =
-    (* Hostspot *)
-    match node.centroid with
-    | 0.0, _ -> Empty
+    let m, _ = node.centroid in
+    match m < 0.00001 with
+    | true -> Empty
     | _ ->
       (match node.children with
        | 0 -> Leaf
