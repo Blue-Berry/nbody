@@ -27,7 +27,7 @@
         devShells = {
           default = mkShell {
             inputsFrom = [self'.packages.default];
-            buildInputs = [pkgs.ocamlPackages.utop pkgs.ocamlPackages.ocaml-lsp pkgs.ocamlPackages.ocamlformat ];
+            buildInputs = [pkgs.ocamlPackages.utop pkgs.ocamlPackages.ocaml-lsp pkgs.ocamlPackages.ocamlformat];
           };
         };
 
@@ -37,11 +37,12 @@
             pname = name;
             src = ./.;
             buildInputs = with pkgs.ocamlPackages; [
-                eio
-                graphics
-                owl
-                ppx_jane
-                alcotest
+              eio
+              graphics
+              owl
+              ppx_jane
+              alcotest
+              core_bench
             ];
           };
 
