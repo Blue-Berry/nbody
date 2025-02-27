@@ -161,8 +161,8 @@ let add_velocity (bodies : body list) (v : vec) : unit =
 
 let collision : body list =
   let star_mass = sun_mass *. 0.1 in
-  let solar1 = mk_lots sun_mass 1000 in
-  let solar2 = mk_lots star_mass 300 in
+  let solar1 = mk_lots sun_mass 10000 in
+  let solar2 = mk_lots star_mass 3000 in
   let disp1 = dist /. 4., 0.0 in
   let disp2 = 0.0 -. (dist /. 4.), 0.0 -. (dist /. 4.) in
   let diff = disp1 --> disp2 in

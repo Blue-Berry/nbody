@@ -67,7 +67,7 @@ let rec draw_qtree (q : Qtree.t) (node_idx : int) (c : int) : unit =
 (* You can configure the program to run for a given number
    of frames before pausing. *)
 let step_counter = { contents = None }
-(*let step_counter = {contents=(Some 20)}*)
+(* let step_counter = {contents=(Some 20)} *)
 
 let should_pause () : bool =
   match step_counter.contents with
@@ -100,7 +100,7 @@ let run (bodies : body list) (step : step_function) : unit =
              the second argument: ((step qt) : body -> unit).
              This trick is called 'currying'. *)
     step_with (step qt) bodies;
-    Unix.sleepf 0.05;
+    (* Unix.sleepf 0.05; *)
     (* When running continuously, a key press exits the program.
        * After exhuasting the frame budget, a quick press will single-step
        * and a held key will exit the program. *)

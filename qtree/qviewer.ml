@@ -97,6 +97,7 @@ let run (bodies : body list) (step : step_function) : unit =
              the second argument: ((step qt) : body -> unit).
              This trick is called 'currying'. *)
     step_with (step qt) bodies;
+    (* Unix.sleepf 0.05; *)
     (* When running continuously, a key press exits the program.
        * After exhuasting the frame budget, a quick press will single-step
        * and a held key will exit the program. *)
