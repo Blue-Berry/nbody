@@ -110,7 +110,7 @@ module Node = struct
        | _ -> Node)
   ;;
 
-  let equal (a : t) (b : t) =
+  let equal (a : t) (b : t) : bool =
     let same_centroid (a_cm, a_cp) (b_cm, b_cp) =
       close_enough a_cp b_cp && a_cm -. b_cm < 0.00001
     in
@@ -129,13 +129,17 @@ module Node = struct
       (same_bbox a_bbox b_bbox)
       (a_child = b_child)
       (a_next = b_next);
-    let am, (a_cp_x, a_cp_y) = a.centroid in
-    let bm, (b_cp_x, b_cp_y) = b.centroid in
-    Printf.printf "Centroids: a: %2f %2f %2f\n" am a_cp_x a_cp_y;
-    Printf.printf "Centroids: b: %2f %2f %2f\n" bm b_cp_x b_cp_y;
-    (same_centroid a.centroid b.centroid && same_bbox a_bbox b_bbox)
-    && a_child = b_child
-    && a_next = b_next
+    let result =
+      (same_centroid a.centroid b.centroid && same_bbox a_bbox b_bbox)
+      && a_child = b_child
+      && a_next = b_next
+    in
+    if not result
+    then (
+      Printf.printf "Node A: %s\n" (sexp_of_t a |> Sexplib.Sexp.to_string_hum);
+      Printf.printf "Node B: %s\n" (sexp_of_t b |> Sexplib.Sexp.to_string_hum);
+      result)
+    else result
   ;;
 end
 
