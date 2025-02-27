@@ -1,5 +1,7 @@
 module To_test = struct
   let subdivide = Lqtree.Qtree.subdivide_leaf
+  let insert = Lqtree.Qtree.insert
+  let acc_by_qtree = Lqtree.Qtree.acc_by_qtree
 end
 
 open Lqtree
@@ -89,7 +91,7 @@ let test_insert1 () =
     qt
   in
   let qt = Qtree.new_t test_bbox in
-  Qtree.insert qt (1.0, (1.5, 1.5));
+  To_test.insert qt (1.0, (1.5, 1.5));
   for i = 0 to Dynarray.length qt.nodes - 1 do
     let node = Dynarray.get qt.nodes i in
     let t_node = Dynarray.get qt_test.nodes i in
@@ -140,8 +142,7 @@ let test_insert2 () =
     Dynarray.add_last qt.nodes node;
     qt
   in
-  Qtree.insert leaf (1.0, (2.5, 2.5));
-  Printf.printf "lead: %s\n" (Qtree.sexp_of_t leaf |> Sexplib.Sexp.to_string_hum);
+  To_test.insert leaf (1.0, (2.5, 2.5));
   for i = 0 to Dynarray.length qt_test.nodes - 1 do
     let example_node = Dynarray.get qt_test.nodes i in
     let node = Dynarray.get leaf.nodes i in
@@ -220,9 +221,8 @@ let test_insert3 () =
     Dynarray.add_last qt.nodes node;
     qt
   in
-  Qtree.insert qt_node (1.0, (2.5, 2.5));
-  Qtree.insert qt_node (1.0, (2.5, 1.5));
-  Printf.printf "lead: %s\n" (Qtree.sexp_of_t qt_node |> Sexplib.Sexp.to_string_hum);
+  To_test.insert qt_node (1.0, (2.5, 2.5));
+  To_test.insert qt_node (1.0, (2.5, 1.5));
   for i = 0 to Dynarray.length qt_test.nodes - 1 do
     let example_node = Dynarray.get qt_test.nodes i in
     let node = Dynarray.get qt_node.nodes i in
@@ -232,6 +232,56 @@ let test_insert3 () =
       (Node.equal node example_node)
   done
 ;;
+
+(* Acceleration due to quadtrees *)
+
+let test_accel_zero () =
+  let qt_test =
+    let qt = Qtree.new_t test_bbox in
+    qt
+  in
+  let accel = To_test.acc_by_qtree (1.0, 1.0) qt_test 0.0 in
+  Alcotest.(check bool) "Acceleration by empty tree" true (accel = (0.0, 0.0))
+;;
+
+let test_accel1 () =
+  let qt_test = Qtree.new_t test_bbox in
+  To_test.insert qt_test (10000000.0, (2.0, 3.0));
+  Printf.printf "Tree: %s\n" (qt_test |> Qtree.sexp_of_t |> Sexplib.Sexp.to_string_hum);
+  let accel = To_test.acc_by_qtree (2.0, 2.0) qt_test 0.0 in
+  let ax, ay = accel in
+  Printf.printf "accel = %f, %f\n"  ax ay;
+  Alcotest.(check bool) "Acceleration by leaf" true (accel = (0.0, 0.000667428))
+;;
+
+(*
+   let test () : bool =
+  let qt = Leaf (10000000.0, (2.0, 3.0)) in
+  let p = (2.0, 2.0) in
+  (0.0, 0.000667428) = acc_by_qtree p qt bb0to4 0.0
+;; run_test "acc_by_qtree 2" test
+
+(* On the other hand, the threshold does matter for points outside the bounding
+   box. *)
+
+let qtree = (Node ((12345678.0, (3.0, 3.0)),
+             {ul = Empty;
+              ur = Empty;
+              ll = (Leaf(12345678.0, (2.0, 2.0)));
+              lr = Empty}))
+
+let test () : bool = 
+   let v1 = acc_by_qtree (5.0, 2.0) qtree bb0to4 2.236 in
+   let v2 = (-0.00014739893883543214, 7.36994694177160698e-05) in
+   close_enough v1 v2
+;; run_test "acc_by_qtree (5.0, 2.0) qtree bb0to4 2.236" test
+
+let test () : bool = 
+   let v1 = acc_by_qtree (5.0, 2.0) qtree bb0to4 0.0 in
+   let v2 = (-0.000823985117618399889, 0.) in
+   close_enough v1 v2
+;; run_test "acc_by_qtree (5.0, 2.0) qtree bb0to4 0.0" test
+*)
 
 let () =
   let open Alcotest in
@@ -245,6 +295,10 @@ let () =
       , [ test_case "Insert into empty" `Quick test_insert1
         ; test_case "Insert into leaf" `Quick test_insert2
         ; test_case "Insert into node" `Quick test_insert3
+        ] )
+    ; ( "Acceleration by quadtree"
+      , [ test_case "Acceleration by empty tree" `Quick test_accel_zero
+        ; test_case "Acceleration by leaf" `Quick test_accel1
         ] )
     ]
 ;;

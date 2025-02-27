@@ -197,19 +197,19 @@ module Qtree = struct
     children
   ;;
 
-  (* Calculate the bounding box if decebging divide the bounding box into quadrants if ascending multiple the bounding box *)
   let acc_by_qtree (pos1 : point) (q : t) (thresh : float) : vec =
     let rec aux (q : t) (node_idx : int) (acc : vec) : vec =
       let node = Dynarray.get q.nodes node_idx in
-      if node.next = 0
-      then acc
-      else (
+      Printf.printf "Acceleartion by Node %s\n" (Node.sexp_of_t node |> Sexplib.Sexp.to_string_hum);
         let cm, cp = node.centroid in
         match Node.node_type node with
+        | Empty when node.next = 0 -> acc
         | Empty -> aux q node.next acc
-        | Leaf -> aux q node.next (acc_on pos1 cm cp)
-        | Node when pos1 --> cp |> mag > thresh -> acc_on pos1 cm cp
-        | Node -> aux q node.children acc)
+        | Leaf when node.next = 0 -> acc ++ acc_on pos1 cm cp
+        | Leaf -> aux q node.next (acc ++ acc_on pos1 cm cp)
+        | Node when (pos1 --> cp |> mag > thresh) && (node.next = 0) -> aux q node.next (acc ++ acc_on pos1 cm cp)
+        | Node when (pos1 --> cp |> mag > thresh) -> (acc ++ acc_on pos1 cm cp)
+        | Node -> aux q node.children acc
     in
     aux q 0 zero
   ;;
