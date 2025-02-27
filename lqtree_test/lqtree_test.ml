@@ -273,33 +273,19 @@ let qtree =
   Dynarray.add_last t.nodes ll;
   Dynarray.add_last t.nodes lr;
   t
+;;
 
 let test_accel2 () =
   let acc = To_test.acc_by_qtree (5.0, 2.0) qtree 2.236 in
-  let acc_test = (-0.00014739893883543214, 7.36994694177160698e-05) in
+  let acc_test = -0.00014739893883543214, 7.36994694177160698e-05 in
   Alcotest.(check bool) "Acceleration by Node" true (close_enough acc acc_test)
 ;;
 
-
-(*
-let qtree = (Node ((12345678.0, (3.0, 3.0)),
-             {ul = Empty;
-              ur = Empty;
-              ll = (Leaf(12345678.0, (2.0, 2.0)));
-              lr = Empty}))
-
-let test () : bool = 
-   let v1 = acc_by_qtree (5.0, 2.0) qtree bb0to4 2.236 in
-   let v2 = (-0.00014739893883543214, 7.36994694177160698e-05) in
-   close_enough v1 v2
-;; run_test "acc_by_qtree (5.0, 2.0) qtree bb0to4 2.236" test
-
-let test () : bool = 
-   let v1 = acc_by_qtree (5.0, 2.0) qtree bb0to4 0.0 in
-   let v2 = (-0.000823985117618399889, 0.) in
-   close_enough v1 v2
-;; run_test "acc_by_qtree (5.0, 2.0) qtree bb0to4 0.0" test
-*)
+let test_accel3 () =
+  let acc = To_test.acc_by_qtree (5.0, 2.0) qtree 0.0 in
+  let acc_test = -0.000823985117618399889, 0. in
+  Alcotest.(check bool) "Acceleration by Node" true (close_enough acc acc_test)
+;;
 
 let () =
   let open Alcotest in
@@ -317,7 +303,8 @@ let () =
     ; ( "Acceleration by quadtree"
       , [ test_case "Acceleration by empty tree" `Quick test_accel_zero
         ; test_case "Acceleration by leaf" `Quick test_accel1
-        ; test_case "Acceleration by node" `Quick test_accel2
+        ; test_case "Acceleration by node outside threshold" `Quick test_accel2
+        ; test_case "Acceleration by node inside threshold" `Quick test_accel3
         ] )
     ]
 ;;
