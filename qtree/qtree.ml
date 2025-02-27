@@ -6,7 +6,7 @@ let ( +. ) = add
 let ( -. ) = sub
 let ( /. ) = div
 
-type centroid = float * Nbody.point [@@deriving sexp]
+type centroid = float * Nbody.point [@@deriving sexp_of]
 
 let centroid_sum (c1 : centroid) (c2 : centroid) : centroid =
   let m1, p1 = c1 in
@@ -19,7 +19,7 @@ type qtree =
   | Empty
   | Leaf of float * point
   | Node of centroid * quads
-[@@deriving sexp]
+[@@deriving sexp_of]
 
 and quads =
   { ul : qtree
@@ -27,7 +27,7 @@ and quads =
   ; ll : qtree
   ; lr : qtree
   }
-[@@deriving sexp]
+[@@deriving sexp_of]
 
 module Bbox = struct
   type t =

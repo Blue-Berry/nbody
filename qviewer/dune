@@ -1,3 +1,8 @@
 (executable
+ (name lqviewer)
+ (libraries lqtree nbody graphics unix))
+
+(executable
  (name qviewer)
- (libraries lqtree graphics unix))
+ (libraries qtree nbody graphics unix))
+

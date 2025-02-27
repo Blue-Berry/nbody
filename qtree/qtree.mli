@@ -41,3 +41,8 @@ val acc_by_qtree : Nbody.point -> qtree -> Bbox.t -> float -> Nbody.vec
 val qinsert : qtree -> float -> Nbody.point -> Bbox.t -> qtree
 val build_qtree_in : Nbody.body list -> Bbox.t -> qtree
 val string_of_qtree : qtree -> string
+
+val sexp_of_centroid : centroid -> Sexplib0.Sexp.t
+val sexp_of_qtree : qtree -> Sexplib0.Sexp.t
+val sexp_of_quads : quads -> Sexplib0.Sexp.t
+

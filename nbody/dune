@@ -1,3 +1,7 @@
-(executable
+(library
  (public_name nbody)
- (name nbody))
+ (name nbody)
+ (libraries owl)
+(preprocess
+  (pps ppx_jane))
+)

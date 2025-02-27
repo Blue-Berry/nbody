@@ -2,11 +2,12 @@
 [@@@ocaml.warning "-32"]
 
 open Graphics
-open Nbody
+open Lqtree
+open Bbox
 open Qtree
+open Lqtree.Nbody
 
 (* The bounding box for the quadtree simulation *)
-open Qtree.Bbox
 
 let bb =
   { minx = dist *. -500.; maxx = dist *. 500.; miny = dist *. -500.; maxy = dist *. 500. }
@@ -14,15 +15,11 @@ let bb =
 
 (* This function computes the forces acting on a body, and mutates
    the body to reflect the change in position over time span dt. *)
-let step_body_with_acc (qt : qtree) (thresh : float) (dt : float) (b : body) : unit =
-  step_body b (acc_by_qtree b.pos qt bb thresh) dt
+let step_body_with_acc (qt : Qtree.t) (thresh : float) (dt : float) (b : body) : unit =
+  step_body b (acc_by_qtree b.pos qt thresh) dt
 ;;
 
-(* Simulations are always a tradeoff between speed and accuracy.
-   Rather than hard-code a particular tradeoff in the simulation, we
-   use higher-order functions to encapsulate the parameters controlling
-   the tradeoff. *)
-let step_slow (qt : qtree) : body -> unit =
+let step_slow (qt : Qtree.t) : body -> unit =
   let dt = 50.0 in
   let thresh = 1000000.0 in
   step_body_with_acc qt thresh dt
@@ -43,11 +40,20 @@ let draw_centroid (m : float) (x : float) (y : float) (c : color) : unit =
   fill_circle px py r
 ;;
 
-let rec draw_qtree (q : qtree) (bb : Bbox.t) (c : int) : unit =
-  match q with
-  | Empty -> ()
-  | Leaf (m, (x, y)) -> draw_centroid m x y white
-  | Node ((m, (x, y)), quads) ->
+let rec draw_qtree (q : Qtree.t) (node_idx : int) (c : int) : unit =
+  let node = Qtree.get_node q node_idx in
+  match Node.node_type node with
+  | Empty when node.next = 0 -> ()
+  | Empty -> draw_qtree q node.next c
+  | Leaf when node.next = 0 ->
+    let m, (x, y) = node.centroid in
+    draw_centroid m x y white
+  | Leaf ->
+    let m, (x, y) = node.centroid in
+    draw_centroid m x y white;
+    draw_qtree q node.next c
+  | Node (*(m, (x, y)), quads*) ->
+    let bb = node.bbox in
     let midx = float_to_screen (midx bb) in
     let midy = float_to_screen (midy bb) in
     set_color blue;
@@ -55,16 +61,13 @@ let rec draw_qtree (q : qtree) (bb : Bbox.t) (c : int) : unit =
     lineto midx (float_to_screen bb.maxy);
     moveto (float_to_screen bb.minx) midy;
     lineto (float_to_screen bb.maxx) midy;
-    draw_qtree quads.ll (Quadrant.to_bbox LL bb) (c - 5);
-    draw_qtree quads.lr (Quadrant.to_bbox LR bb) (c - 5);
-    draw_qtree quads.ul (Quadrant.to_bbox UL bb) (c - 5);
-    draw_qtree quads.ur (Quadrant.to_bbox UR bb) (c - 5)
+    draw_qtree q node.children (c - 5)
 ;;
 
 (* You can configure the program to run for a given number
    of frames before pausing. *)
 let step_counter = { contents = None }
-(*let step_counter = {contents=(Some 20)}*)
+(* let step_counter = {contents=(Some 20)} *)
 
 let should_pause () : bool =
   match step_counter.contents with
@@ -76,7 +79,7 @@ let should_pause () : bool =
 
 let step_with (step : body -> unit) (bodies : body list) : unit = List.iter step bodies
 
-type step_function = qtree -> body -> unit
+type step_function = Qtree.t -> body -> unit
 
 let run (bodies : body list) (step : step_function) : unit =
   open_graph "";
@@ -88,7 +91,7 @@ let run (bodies : body list) (step : step_function) : unit =
     set_color black;
     fill_rect 0 0 dim dim;
     let qt = build_qtree_in bodies bb in
-    draw_qtree qt bb 155;
+    draw_qtree qt 0 155;
     synchronize ();
     (* show the freshly painted window *)
     (* We've done something interesting here: we take a function
