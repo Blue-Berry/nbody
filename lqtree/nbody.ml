@@ -6,6 +6,7 @@ let ( *. ) = mul
 let ( /. ) = div
 
 open Sexplib.Std
+
 type point = float * float [@@deriving sexp_of]
 type vec = float * float [@@deriving sexp_of]
 

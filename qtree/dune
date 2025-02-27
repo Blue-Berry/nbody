@@ -1,7 +1,8 @@
 (executable
  (name qviewer)
  (libraries owl graphics)
- (preprocess (pps ppx_jane)))
+ (preprocess
+  (pps ppx_jane)))
 
 ; (library
 ;  (name qtree)

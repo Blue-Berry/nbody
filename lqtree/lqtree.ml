@@ -24,7 +24,8 @@ module Bbox = struct
     ; miny : float
     ; maxx : float
     ; maxy : float
-    } [@@deriving sexp_of]
+    }
+  [@@deriving sexp_of]
 
   let contains_point ((x, y) : point) (bb : t) : bool =
     bb.minx <= x && x <= bb.maxx && bb.miny <= y && y <= bb.maxy
@@ -90,7 +91,8 @@ module Node = struct
     ; mutable children : int
     ; mutable next : int
     ; bbox : Bbox.t
-    } [@@deriving sexp_of]
+    }
+  [@@deriving sexp_of]
 
   let new_node centroid bbox = { centroid; children = 0; next = 0; bbox }
 

@@ -148,7 +148,6 @@ let test_insert2 () =
   done
 ;;
 
-
 let () =
   let open Alcotest in
   run

@@ -5,12 +5,11 @@ val ( /. ) : float -> float -> float
 
 type point = float * float
 type vec = float * float
+
 val point_of_sexp : Sexplib0.Sexp.t -> point
 val sexp_of_point : point -> Sexplib0.Sexp.t
 val vec_of_sexp : Sexplib0.Sexp.t -> vec
 val sexp_of_vec : vec -> Sexplib0.Sexp.t
-
-
 val displace : point -> vec -> point
 val mag_squared : vec -> float
 val mag : vec -> float
@@ -58,4 +57,3 @@ val mk_lots : float -> int -> body list
 val displace_bodies : body list -> vec -> unit
 val add_velocity : body list -> vec -> unit
 val collision : body list
-
