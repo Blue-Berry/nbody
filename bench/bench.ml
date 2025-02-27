@@ -1,16 +1,19 @@
 open Core_bench
+open Nbody
 
-let bench_linear () =
-  let open Lqtree in
-  let open Nbody in
-  let lbb =
+let lqt =
+  Lqtree.Qtree.new_t
     Lqtree.Bbox.
       { minx = dist *. -500.
       ; maxx = dist *. 500.
       ; miny = dist *. -500.
       ; maxy = dist *. 500.
       }
-  in
+;;
+
+let bench_linear () =
+  let open Lqtree in
+  let open Nbody in
   let step_lq (qt : Lqtree.Qtree.t) : body -> unit =
     let open Lqtree in
     let open Qtree in
@@ -21,13 +24,13 @@ let bench_linear () =
     let thresh = 1000000.0 in
     step_body_with_acc qt thresh dt
   in
+  Lqtree.Qtree.clear lqt;
   let lqtree_bodies = Nbody.collision in
-  let lqt = Lqtree.Qtree.new_t lbb in
   Lqtree.Qtree.populate lqt lqtree_bodies;
   List.iter (step_lq lqt) lqtree_bodies
 ;;
 
-let bench_quad () =
+let _bench_quad () =
   let open Nbody in
   let open Qtree in
   let bb =
@@ -52,9 +55,5 @@ let bench_quad () =
 ;;
 
 let () =
-  Command_unix.run
-    (Bench.make_command
-       [ Bench.Test.create ~name:"Linear" bench_linear
-       ; Bench.Test.create ~name:"Quadtree" bench_quad
-       ])
+  Command_unix.run (Bench.make_command [ Bench.Test.create ~name:"Linear" bench_linear ])
 ;;

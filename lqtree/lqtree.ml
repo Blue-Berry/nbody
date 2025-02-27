@@ -260,5 +260,14 @@ module Qtree = struct
       bodies
   ;;
 
-  let clear (q : t) : unit = Dynarray.clear q.nodes
+  let clear (q : t) : unit =
+    if Dynarray.length q.nodes = 0
+    then ()
+    else (
+      let node = Dynarray.get q.nodes 0 in
+      let bbox = node.bbox in
+      Dynarray.clear q.nodes;
+      let node = Node.new_node (0.0, zero) bbox in
+      Dynarray.add_last q.nodes node)
+  ;;
 end

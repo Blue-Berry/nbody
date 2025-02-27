@@ -27,7 +27,7 @@
         devShells = {
           default = mkShell {
             inputsFrom = [self'.packages.default];
-            buildInputs = [pkgs.ocamlPackages.utop pkgs.ocamlPackages.ocaml-lsp pkgs.ocamlPackages.ocamlformat];
+            buildInputs = [pkgs.ocamlPackages.utop pkgs.ocamlPackages.ocaml-lsp pkgs.ocamlPackages.ocamlformat pkgs.pprof pkgs.perf_data_converter pkgs.graphviz];
           };
         };
 
