@@ -140,8 +140,8 @@ let test_insert2 () =
     Dynarray.add_last qt.nodes node;
     qt
   in
-  Printf.printf "qt_test: %s\n" (Qtree.sexp_of_t qt_test |> Sexplib.Sexp.to_string_hum);
   Qtree.insert leaf (1.0, (2.5, 2.5));
+  Printf.printf "lead: %s\n" (Qtree.sexp_of_t leaf |> Sexplib.Sexp.to_string_hum);
   for i = 0 to Dynarray.length qt_test.nodes - 1 do
     let example_node = Dynarray.get qt_test.nodes i in
     let node = Dynarray.get leaf.nodes i in

@@ -185,9 +185,10 @@ module Qtree = struct
     let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
     for i = 0 to 3 do
       let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
+      let centroid = (if Bbox.contains_point lp bbox then lm, lp else 0.0, zero) in
       Dynarray.add_last
         qt.nodes
-        { centroid = (if Bbox.contains_point lp bbox then lm, lp else 0.0, zero)
+        { centroid
         ; children = 0
         ; next = next_nodes.(i)
         ; bbox
@@ -214,7 +215,6 @@ module Qtree = struct
     aux q 0 zero
   ;;
 
-  (* TODO: calculate new centroid *)
   let insert (qt : t) ((m, pos) : centroid) =
     let rec aux (q : t) (node_idx : int) =
       let node = Dynarray.get q.nodes node_idx in
@@ -233,9 +233,12 @@ module Qtree = struct
           node.centroid <- m +. cm, pos;
           Dynarray.set q.nodes node_idx node)
         else (
-          (* Is this right?*)
-          node.centroid <- centroid_sum node.centroid (m, pos);
+          (* Convert leaf to node. calculate new centroid, split into quadrants, and recurse. *)
           let children = subdivide_leaf q node_idx in
+          let new_centroid =centroid_sum node.centroid (m, pos) in
+          node.centroid <- new_centroid;
+          node.children <- children;
+          Dynarray.set q.nodes node_idx node;
           let q_idx = Quadrant.contains pos node.bbox |> Quadrant.to_index in
           aux q (children + q_idx))
     in
