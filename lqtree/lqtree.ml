@@ -1,11 +1,12 @@
 open Owl.Maths
 open Nbody
+open Sexplib.Std
 
 let ( +. ) = add
 let ( -. ) = sub
 let ( /. ) = div
 
-type centroid = float * Nbody.point
+type centroid = float * Nbody.point [@@deriving sexp_of]
 
 let centroid_sum (c1 : centroid) (c2 : centroid) : centroid =
   let open Nbody in
@@ -23,7 +24,7 @@ module Bbox = struct
     ; miny : float
     ; maxx : float
     ; maxy : float
-    }
+    } [@@deriving sexp_of]
 
   let contains_point ((x, y) : point) (bb : t) : bool =
     bb.minx <= x && x <= bb.maxx && bb.miny <= y && y <= bb.maxy
@@ -89,7 +90,7 @@ module Node = struct
     ; mutable children : int
     ; mutable next : int
     ; bbox : Bbox.t
-    }
+    } [@@deriving sexp_of]
 
   let new_node centroid bbox = { centroid; children = 0; next = 0; bbox }
 
@@ -126,6 +127,10 @@ module Node = struct
       (same_bbox a_bbox b_bbox)
       (a_child = b_child)
       (a_next = b_next);
+    let am, (a_cp_x, a_cp_y) = a.centroid in
+    let bm, (b_cp_x, b_cp_y) = b.centroid in
+    Printf.printf "Centroids: a: %2f %2f %2f\n" am a_cp_x a_cp_y;
+    Printf.printf "Centroids: b: %2f %2f %2f\n" bm b_cp_x b_cp_y;
     (same_centroid a.centroid b.centroid && same_bbox a_bbox b_bbox)
     && a_child = b_child
     && a_next = b_next
@@ -137,7 +142,7 @@ module Qtree = struct
 
   let capacity = 10
 
-  let new_t (bbox: Bbox.t) = 
+  let new_t (bbox : Bbox.t) =
     let nodes = Dynarray.create () in
     Dynarray.set_capacity nodes capacity;
     let node = Node.new_node (0.0, zero) bbox in
@@ -148,7 +153,7 @@ module Qtree = struct
   let subdivide (qt : t) (node_idx : int) : int =
     let children = qt.nodes |> Dynarray.length in
     let node = Dynarray.get qt.nodes node_idx in
-    assert Node.(node_type node != Node);
+    assert (Node.(node_type node != Node));
     Dynarray.set qt.nodes node_idx { node with children };
     let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
     for i = 0 to 3 do
@@ -217,6 +222,8 @@ module Qtree = struct
           node.centroid <- m +. cm, pos;
           Dynarray.set q.nodes node_idx node)
         else (
+          (* Is this right?*)
+          node.centroid <- centroid_sum node.centroid (m, pos);
           let children = subdivide_leaf q node_idx in
           let q_idx = Quadrant.contains pos node.bbox |> Quadrant.to_index in
           aux q (children + q_idx))

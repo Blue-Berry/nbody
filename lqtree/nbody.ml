@@ -5,8 +5,9 @@ let ( -. ) = sub
 let ( *. ) = mul
 let ( /. ) = div
 
-type point = float * float 
-type vec = float * float 
+open Sexplib.Std
+type point = float * float [@@deriving sexp_of]
+type vec = float * float [@@deriving sexp_of]
 
 let displace ((x, y) : point) ((dx, dy) : vec) : point = x +. dx, y +. dy
 [@@inline always]
