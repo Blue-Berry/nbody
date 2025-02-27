@@ -5,6 +5,7 @@ open Sexplib.Std
 let ( +. ) = add
 let ( -. ) = sub
 let ( /. ) = div
+let close_enough = Nbody.close_enough
 
 type centroid = float * Nbody.point [@@deriving sexp_of]
 
@@ -203,9 +204,8 @@ module Qtree = struct
       | Empty -> aux q node.next acc
       | Leaf when node.next = 0 -> acc ++ acc_on pos1 cm cp
       | Leaf -> aux q node.next (acc ++ acc_on pos1 cm cp)
-      | Node when pos1 --> cp |> mag > thresh && node.next = 0 ->
-        aux q node.next (acc ++ acc_on pos1 cm cp)
-      | Node when pos1 --> cp |> mag > thresh -> acc ++ acc_on pos1 cm cp
+      | Node when pos1 --> cp |> mag > thresh && node.next = 0 -> acc ++ acc_on pos1 cm cp
+      | Node when pos1 --> cp |> mag > thresh -> aux q node.next (acc ++ acc_on pos1 cm cp)
       | Node -> aux q node.children acc
     in
     aux q 0 zero

@@ -249,21 +249,39 @@ let test_accel1 () =
   To_test.insert qt_test (10000000.0, (2.0, 3.0));
   Printf.printf "Tree: %s\n" (qt_test |> Qtree.sexp_of_t |> Sexplib.Sexp.to_string_hum);
   let accel = To_test.acc_by_qtree (2.0, 2.0) qt_test 0.0 in
-  let ax, ay = accel in
-  Printf.printf "accel = %f, %f\n" ax ay;
   Alcotest.(check bool) "Acceleration by leaf" true (accel = (0.0, 0.000667428))
 ;;
 
+let qtree =
+  let open Quadrant in
+  let open Node in
+  let open Qtree in
+  let ul = new_node zero_c (to_bbox UL test_bbox) in
+  ul.next <- 2;
+  let ur = new_node zero_c (to_bbox UR test_bbox) in
+  ur.next <- 3;
+  let ll = new_node (12345678.0, (2.0, 2.0)) (to_bbox LL test_bbox) in
+  ll.next <- 4;
+  let lr = new_node zero_c (to_bbox LR test_bbox) in
+  lr.next <- 0;
+  let t = { nodes = Dynarray.create () } in
+  let root = new_node (12345678.0, (3.0, 3.0)) test_bbox in
+  root.children <- 1;
+  Dynarray.add_last t.nodes root;
+  Dynarray.add_last t.nodes ul;
+  Dynarray.add_last t.nodes ur;
+  Dynarray.add_last t.nodes ll;
+  Dynarray.add_last t.nodes lr;
+  t
+
+let test_accel2 () =
+  let acc = To_test.acc_by_qtree (5.0, 2.0) qtree 2.236 in
+  let acc_test = (-0.00014739893883543214, 7.36994694177160698e-05) in
+  Alcotest.(check bool) "Acceleration by Node" true (close_enough acc acc_test)
+;;
+
+
 (*
-   let test () : bool =
-  let qt = Leaf (10000000.0, (2.0, 3.0)) in
-  let p = (2.0, 2.0) in
-  (0.0, 0.000667428) = acc_by_qtree p qt bb0to4 0.0
-;; run_test "acc_by_qtree 2" test
-
-(* On the other hand, the threshold does matter for points outside the bounding
-   box. *)
-
 let qtree = (Node ((12345678.0, (3.0, 3.0)),
              {ul = Empty;
               ur = Empty;
@@ -299,6 +317,7 @@ let () =
     ; ( "Acceleration by quadtree"
       , [ test_case "Acceleration by empty tree" `Quick test_accel_zero
         ; test_case "Acceleration by leaf" `Quick test_accel1
+        ; test_case "Acceleration by node" `Quick test_accel2
         ] )
     ]
 ;;
