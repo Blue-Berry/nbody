@@ -18,7 +18,7 @@ module Float = struct
   let get (v : t) (i : int) : elm = Array1.get v.arr i
 
   let grow (v : t) : unit =
-    let new_len = v.length * growth_factor in
+    let new_len = Array1.dim v.arr * growth_factor in
     let new_arr = Array1.create float64 c_layout new_len in
     Array1.blit v.arr (Array1.sub new_arr 0 (Array1.dim v.arr));
     v.arr <- new_arr
@@ -60,14 +60,14 @@ module Float2 = struct
   ;;
 
   let grow v =
-    let new_len = v.length * growth_factor in
-    let new_arr = Array2.create float64 c_layout new_len dim2 in
+    let new_len = Array2.dim1 v.arr * growth_factor in
+    let new_arr = Array2.create float64 c_layout dim2 new_len in
     Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr));
     v.arr <- new_arr
   ;;
 
   let add_last v { v1; v2 } =
-    if v.length >= Array2.dim2 v.arr then grow v;
+    if v.length >= Array2.dim1 v.arr then grow v;
     Array2.set v.arr v.length 0 v1;
     Array2.set v.arr v.length 1 v2;
     v.length <- v.length + 1
@@ -109,14 +109,14 @@ module Float3 = struct
   ;;
 
   let grow v =
-    let new_len = v.length * growth_factor in
+    let new_len = Array2.dim1 v.arr * growth_factor in
     let new_arr = Array2.create float64 c_layout new_len dim2 in
     Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr));
     v.arr <- new_arr
   ;;
 
   let add_last v { v1; v2; v3 } =
-    if v.length >= Array2.dim2 v.arr then grow v;
+    if v.length >= Array2.dim1 v.arr then grow v;
     Array2.set v.arr v.length 0 v1;
     Array2.set v.arr v.length 1 v2;
     Array2.set v.arr v.length 2 v3;
@@ -163,14 +163,14 @@ module Float4 = struct
 
   (* Copy all elements of a Bigarray in another Bigarray. Genarray.blit src dst copies all elements of src into dst. Both arrays src and dst must have the same number of dimensions and equal dimensions. Copying a sub-array of src to a sub-array of dst can be achieved by applying Genarray.blit to sub-array or slices of src and dst. *)
   let grow v =
-    let new_len = v.length * growth_factor in
+    let new_len = Array2.dim1 v.arr * growth_factor in
     let new_arr = Array2.create float64 c_layout new_len dim2 in
     Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr));
     v.arr <- new_arr
   ;;
 
   let add_last v { v1; v2; v3; v4 } =
-    if v.length >= Array2.dim2 v.arr then grow v;
+    if v.length >= Array2.dim1 v.arr then grow v;
     Array2.set v.arr v.length 0 v1;
     Array2.set v.arr v.length 1 v2;
     Array2.set v.arr v.length 2 v3;
@@ -206,7 +206,7 @@ module Int = struct
   let get (v : t) (i : int) : elm = Array1.get v.arr i
 
   let grow (v : t) : unit =
-    let new_len = v.length * growth_factor in
+    let new_len = Array1.dim v.arr * growth_factor in
     let new_arr = Array1.create int c_layout new_len in
     Array1.blit v.arr (Array1.sub new_arr 0 (Array1.dim v.arr));
     v.arr <- new_arr
