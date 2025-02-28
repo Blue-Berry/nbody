@@ -240,14 +240,14 @@ let test_accel_zero () =
     let qt = Qtree.new_t test_bbox in
     qt
   in
-  let accel = To_test.acc_by_qtree (1.0, 1.0) qt_test 0.0 in
+  let accel = To_test.acc_by_qtree (1.0, 1.0) qt_test in
   Alcotest.(check bool) "Acceleration by empty tree" true (accel = (0.0, 0.0))
 ;;
 
 let test_accel1 () =
   let qt_test = Qtree.new_t test_bbox in
   To_test.insert qt_test (10000000.0, (2.0, 3.0));
-  let accel = To_test.acc_by_qtree (2.0, 2.0) qt_test 0.0 in
+  let accel = To_test.acc_by_qtree (2.0, 2.0) qt_test in
   Alcotest.(check bool) "Acceleration by leaf" true (accel = (0.0, 0.000667428))
 ;;
 
@@ -275,13 +275,13 @@ let qtree =
 ;;
 
 let test_accel2 () =
-  let acc = To_test.acc_by_qtree (5.0, 2.0) qtree 2.236 in
+  let acc = To_test.acc_by_qtree (5.0, 2.0) qtree in
   let acc_test = -0.00014739893883543214, 7.36994694177160698e-05 in
   Alcotest.(check bool) "Acceleration by Node" true (Nbody.close_enough acc acc_test)
 ;;
 
 let test_accel3 () =
-  let acc = To_test.acc_by_qtree (5.0, 2.0) qtree 0.0 in
+  let acc = To_test.acc_by_qtree (5.0, 2.0) qtree in
   let acc_test = -0.000823985117618399889, 0. in
   Alcotest.(check bool) "Acceleration by Node" true (Nbody.close_enough acc acc_test)
 ;;

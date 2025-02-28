@@ -34,6 +34,7 @@ module Bbox = struct
 
   let midx (bb : t) : float = bb.minx +. ((bb.maxx -. bb.minx) /. 2.)
   let midy (bb : t) : float = bb.miny +. ((bb.maxy -. bb.miny) /. 2.)
+  let size (bb : t) : float = bb.maxx -. bb.minx
 end
 
 module Quadrant = struct
@@ -141,6 +142,8 @@ end
 module Qtree = struct
   type t = { nodes : Node.t Dynarray.t }
 
+  let thresh_factor = 3.0
+
   let sexp_of_t qt =
     let nodes = Dynarray.to_list qt.nodes in
     Sexplib.Std.sexp_of_list Node.sexp_of_t nodes
@@ -192,10 +195,21 @@ module Qtree = struct
     children
   ;;
 
-  let acc_by_qtree (pos1 : point) (q : t) (thresh : float) : vec =
-    let node_check pos1 cp thresh bbox =
-      pos1 --> cp |> mag > thresh && (not @@ Bbox.contains_point pos1 bbox)
-    in
+  let node_check pos1 cp bbox =
+    let dist_sq = pos1 --> cp |> mag_squared in
+    let inside_bbox = Bbox.contains_point pos1 bbox in
+    let bbox_size_sqr = Bbox.size bbox |> sqr in
+    dist_sq *. thresh_factor > bbox_size_sqr && not inside_bbox
+  ;;
+
+  (* let node_check pos1 cp bbox = *)
+  (*   pos1 --> cp |> mag > 1000000.0 && (not @@ Bbox.contains_point pos1 bbox) *)
+
+  (* let[@inline] node_check pos1 cp thresh bbox = *)
+  (*   pos1 --> cp |> mag > thresh && (not @@ Bbox.contains_point pos1 bbox) *)
+  (* ;; *)
+
+  let acc_by_qtree (pos1 : point) (q : t) : vec =
     let rec acc_aux (q : t) (node_idx : int) (acc : vec) : vec =
       let node = get_node q node_idx in
       let cm, cp = node.centroid in
@@ -204,9 +218,9 @@ module Qtree = struct
       | Empty -> acc_aux q node.next acc
       | Leaf when node.next = 0 -> acc ++ acc_on pos1 cm cp
       | Leaf -> acc_aux q node.next (acc ++ acc_on pos1 cm cp)
-      | Node when node_check pos1 cp thresh node.bbox && node.next = 0 ->
+      | Node when node_check pos1 cp node.bbox && node.next = 0 ->
         acc ++ acc_on pos1 cm cp
-      | Node when node_check pos1 cp thresh node.bbox ->
+      | Node when node_check pos1 cp node.bbox ->
         acc_aux q node.next (acc ++ acc_on pos1 cm cp)
       | Node -> acc_aux q node.children acc
     in

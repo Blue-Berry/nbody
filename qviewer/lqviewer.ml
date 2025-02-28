@@ -15,14 +15,13 @@ let bb =
 
 (* This function computes the forces acting on a body, and mutates
    the body to reflect the change in position over time span dt. *)
-let step_body_with_acc (qt : Qtree.t) (thresh : float) (dt : float) (b : body) : unit =
-  step_body b (acc_by_qtree b.pos qt thresh) dt
+let step_body_with_acc (qt : Qtree.t) (dt : float) (b : body) : unit =
+  step_body b (acc_by_qtree b.pos qt) dt
 ;;
 
 let step_slow (qt : Qtree.t) : body -> unit =
   let dt = 50.0 in
-  let thresh = 1000000.0 in
-  step_body_with_acc qt thresh dt
+  step_body_with_acc qt dt
 ;;
 
 (* Define a few constants we use for the display. *)

@@ -17,12 +17,11 @@ let bench_linear () =
   let step_lq (qt : Lqtree.Qtree.t) : body -> unit =
     let open Lqtree in
     let open Qtree in
-    let step_body_with_acc (qt : Qtree.t) (thresh : float) (dt : float) (b : body) : unit =
-      step_body b (acc_by_qtree b.pos qt thresh) dt
+    let step_body_with_acc (qt : Qtree.t) (dt : float) (b : body) : unit =
+      step_body b (acc_by_qtree b.pos qt) dt
     in
     let dt = 50.0 in
-    let thresh = 1000000.0 in
-    step_body_with_acc qt thresh dt
+    step_body_with_acc qt dt
   in
   Lqtree.Qtree.clear lqt;
   let lqtree_bodies = Nbody.collision in
