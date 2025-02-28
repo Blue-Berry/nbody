@@ -21,7 +21,7 @@ let bench_linear () =
       step_body b (acc_by_qtree b.pos qt thresh) dt
     in
     let dt = 50.0 in
-    let thresh = 1000000.0 *. 1000000.0  in
+    let thresh = 1000000.0 in
     step_body_with_acc qt thresh dt
   in
   Lqtree.Qtree.clear lqt;
