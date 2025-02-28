@@ -2,6 +2,6 @@
  (name lqtree)
  (libraries owl graphics nbody)
  (ocamlopt_flags
-  (:standard -O3 -S))
+  (:standard -O3 -S -dlambda -dcmm -dump-into-file))
  (preprocess
   (pps ppx_jane)))
