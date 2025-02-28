@@ -20,9 +20,9 @@ module Float2 : sig
     }
 
   val create : int -> t
-  val get : t -> int -> float * float
+  val get : t -> int -> elm
   val grow : t -> unit
-  val add_last : t -> float * float -> unit
+  val add_last : t -> elm -> unit
   val set : t -> int -> elm -> unit
 end
 
@@ -36,9 +36,9 @@ module Float3 : sig
     }
 
   val create : int -> t
-  val get : t -> int -> float * float * float
+  val get : t -> int -> elm
   val grow : t -> unit
-  val add_last : t -> float * float * float -> unit
+  val add_last : t -> elm -> unit
   val set : t -> int -> elm -> unit
 end
 
@@ -60,8 +60,7 @@ module Float4 : sig
 end
 
 module Int : sig
-  type t 
-
+  type t
   type elm = int
 
   val create : int -> t
@@ -69,4 +68,3 @@ module Int : sig
   val add_last : t -> elm -> unit
   val set : t -> int -> elm -> unit
 end
-

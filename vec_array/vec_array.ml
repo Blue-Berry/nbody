@@ -51,25 +51,29 @@ module Float2 = struct
     { arr; length = 0 }
   ;;
 
-  let get v i = Array2.get v.arr 0 i, Array2.get v.arr 1 i
+  let get v i =
+    let v1 = Array2.get v.arr i 0 in
+    let v2 = Array2.get v.arr i 1 in
+    { v1; v2 }
+  ;;
 
   let grow v =
     let new_len = v.length * growth_factor in
     let new_arr = Array2.create float64 c_layout new_len dim2 in
-    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr) );
+    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr));
     v.arr <- new_arr
   ;;
 
-  let add_last v (x, y) =
+  let add_last v { v1; v2 } =
     if v.length >= Array2.dim2 v.arr then grow v;
-    Array2.unsafe_set v.arr 0 v.length x;
-    Array2.unsafe_set v.arr 1 v.length y;
+    Array2.unsafe_set v.arr v.length 0 v1;
+    Array2.unsafe_set v.arr v.length 1 v2;
     v.length <- v.length + 1
   ;;
 
   let set v i { v1; v2 } =
-    Array2.set v.arr 0 i v1;
-    Array2.set v.arr 1 i v2
+    Array2.set v.arr i 0 v1;
+    Array2.set v.arr i 1 v2
   ;;
 end
 
@@ -92,27 +96,32 @@ module Float3 = struct
     { arr; length = 0 }
   ;;
 
-  let get v i = Array2.get v.arr 0 i, Array2.get v.arr 1 i, Array2.get v.arr 2 i
+  let get v i : elm =
+    let v1 = Array2.get v.arr i 0 in
+    let v2 = Array2.get v.arr i 1 in
+    let v3 = Array2.get v.arr i 2 in
+    { v1; v2; v3 }
+  ;;
 
   let grow v =
     let new_len = v.length * growth_factor in
     let new_arr = Array2.create float64 c_layout new_len dim2 in
-    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr) );
+    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr));
     v.arr <- new_arr
   ;;
 
-  let add_last v (x, y, z) =
+  let add_last v { v1; v2; v3 } =
     if v.length >= Array2.dim2 v.arr then grow v;
-    Array2.unsafe_set v.arr 0 v.length x;
-    Array2.unsafe_set v.arr 1 v.length y;
-    Array2.unsafe_set v.arr 2 v.length z;
+    Array2.unsafe_set v.arr v.length 0 v1;
+    Array2.unsafe_set v.arr v.length 1 v2;
+    Array2.unsafe_set v.arr v.length 2 v3;
     v.length <- v.length + 1
   ;;
 
   let set v i { v1; v2; v3 } =
-    Array2.set v.arr 0 i v1;
-    Array2.set v.arr 1 i v2;
-    Array2.set v.arr 2 i v3
+    Array2.set v.arr i 0 v1;
+    Array2.set v.arr i 1 v2;
+    Array2.set v.arr i 2 v3
   ;;
 end
 
@@ -137,35 +146,35 @@ module Float4 = struct
   ;;
 
   let get v i =
-    let v1 = Array2.get v.arr 0 i in
-    let v2 = Array2.get v.arr 1 i in
-    let v3 = Array2.get v.arr 2 i in
-    let v4 = Array2.get v.arr 3 i in
+    let v1 = Array2.get v.arr i 0 in
+    let v2 = Array2.get v.arr i 1 in
+    let v3 = Array2.get v.arr i 2 in
+    let v4 = Array2.get v.arr i 3 in
     { v1; v2; v3; v4 }
   ;;
 
-(* Copy all elements of a Bigarray in another Bigarray. Genarray.blit src dst copies all elements of src into dst. Both arrays src and dst must have the same number of dimensions and equal dimensions. Copying a sub-array of src to a sub-array of dst can be achieved by applying Genarray.blit to sub-array or slices of src and dst. *)
+  (* Copy all elements of a Bigarray in another Bigarray. Genarray.blit src dst copies all elements of src into dst. Both arrays src and dst must have the same number of dimensions and equal dimensions. Copying a sub-array of src to a sub-array of dst can be achieved by applying Genarray.blit to sub-array or slices of src and dst. *)
   let grow v =
     let new_len = v.length * growth_factor in
     let new_arr = Array2.create float64 c_layout new_len dim2 in
-    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr) );
+    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr));
     v.arr <- new_arr
   ;;
 
   let add_last v { v1; v2; v3; v4 } =
     if v.length >= Array2.dim2 v.arr then grow v;
-    Array2.unsafe_set v.arr 0 v.length v1;
-    Array2.unsafe_set v.arr 1 v.length v2;
-    Array2.unsafe_set v.arr 2 v.length v3;
-    Array2.unsafe_set v.arr 2 v.length v4;
+    Array2.unsafe_set v.arr v.length 0 v1;
+    Array2.unsafe_set v.arr v.length 1 v2;
+    Array2.unsafe_set v.arr v.length 2 v3;
+    Array2.unsafe_set v.arr v.length 2 v4;
     v.length <- v.length + 1
   ;;
 
   let set v i { v1; v2; v3; v4 } =
-    Array2.set v.arr 0 i v1;
-    Array2.set v.arr 1 i v2;
-    Array2.set v.arr 2 i v3;
-    Array2.set v.arr 2 i v4
+    Array2.set v.arr i 0 v1;
+    Array2.set v.arr i 1 v2;
+    Array2.set v.arr i 2 v3;
+    Array2.set v.arr i 2 v4
   ;;
 end
 

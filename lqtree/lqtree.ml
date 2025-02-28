@@ -106,6 +106,13 @@ module Node = struct
     ; bbox : Bbox.t
     }
 
+  type ts =
+    { mutable centroids : Vec_array.Float3.t
+    ; mutable children : Vec_array.Int.t
+    ; mutable next : Vec_array.Int.t
+    ; mutable bboxs : Bbox.ts
+    }
+
   let new_node centroid bbox = { centroid; children = 0; next = 0; bbox }
 
   type kind =
@@ -141,6 +148,42 @@ module Node = struct
       && a_next = b_next
     in
     result
+  ;;
+
+  (* type ts = *)
+  (*   { mutable centroids : Vec_array.Float3.t *)
+  (*   ; mutable children : Vec_array.Int.t *)
+  (*   ; mutable next : Vec_array.Int.t *)
+  (*   ; mutable bboxs : Bbox.ts *)
+  (*   } *)
+
+  type _ node_field =
+    | Centroid : centroid node_field
+    | Children : int node_field
+    | Next : int node_field
+    | Bbox : Bbox.t node_field
+    | All : t node_field
+
+  let get (type a) (node : ts) (idx : int) (field : a node_field) : a =
+    let open Vec_array in
+    match field with
+    | Centroid ->
+      let Float3.{ v1; v2; v3 } = Float3.get node.centroids idx in
+      v1, (v2, v3)
+    | Children -> Int.get node.children idx
+    | Next -> Int.get node.next idx
+    | Bbox ->
+      let Float4.{ v1; v2; v3; v4 } = Float4.get node.bboxs idx in
+      Bbox.{ minx = v1; miny = v2; maxx = v3; maxy = v4 }
+    | All ->
+      let Float3.{ v1; v2; v3 } = Float3.get node.centroids idx in
+      let centroid = v1, (v2, v3) in
+      let Float4.{ v1; v2; v3; v4 } = Float4.get node.bboxs idx in
+      { centroid
+      ; children = Int.get node.children idx
+      ; next = Int.get node.next idx
+      ; bbox = { minx = v1; miny = v2; maxx = v3; maxy = v4 }
+      }
   ;;
 end
 
