@@ -3,4 +3,11 @@
   (flags (:standard)))
  (release
   (ocamlopt_flags
-   (:standard -O3 -S))))
+   (:standard -O3)))
+(dcmm
+  (ocamlopt_flags
+   (:standard -O3 -S -dcmm -dump-into-file)))
+(dlambda
+  (ocamlopt_flags
+   (:standard -O3 -S -dlambda -dump-into-file)))
+ )

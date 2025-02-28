@@ -15,8 +15,8 @@ let displace ((x, y) : point) ((dx, dy) : vec) : point = x +. dx, y +. dy
 ;;
 
 let mag_squared ((x, y) : vec) : float = sqr x +. sqr y [@@inline ]
-let mag (v: vec) : float = sqrt (mag_squared v)
-(* let mag ((x, y) : vec) : float = hypot x y [@@inline ] *)
+(* let mag (v: vec) : float = sqrt (mag_squared v) *)
+let mag ((x, y) : vec) : float = hypot x y [@@inline ]
 
 let ( *$ ) (c : float) ((x1, y1) : vec) : vec = c *. x1, c *. y1 [@@inline ]
 let unit_vec (v : vec) : vec = 1.0 /. mag v *$ v [@@inline ]
