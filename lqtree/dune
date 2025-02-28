@@ -1,7 +1,5 @@
 (library
  (name lqtree)
- (libraries owl graphics nbody)
- ; (ocamlopt_flags
- ;  (:standard -O3 -S -dlambda -dcmm -dump-into-file))
+ (libraries owl graphics nbody vec_array)
  (preprocess
   (pps ppx_jane)))

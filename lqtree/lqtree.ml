@@ -7,7 +7,7 @@ let ( +. ) = add
 let ( -. ) = sub
 let ( /. ) = div
 
-type centroid = float * Nbody.point [@@deriving sexp_of]
+type centroid = float * Nbody.point
 
 let centroid_sum (c1 : centroid) (c2 : centroid) : centroid =
   let open Nbody in
@@ -26,7 +26,8 @@ module Bbox = struct
     ; maxx : float
     ; maxy : float
     }
-  [@@deriving sexp_of]
+
+  type ts = Vec_array.Float4.t
 
   let contains_point ((x, y) : point) (bb : t) : bool =
     bb.minx <= x && x <= bb.maxx && bb.miny <= y && y <= bb.maxy
@@ -35,6 +36,16 @@ module Bbox = struct
   let midx (bb : t) : float = bb.minx +. ((bb.maxx -. bb.minx) /. 2.)
   let midy (bb : t) : float = bb.miny +. ((bb.maxy -. bb.miny) /. 2.)
   let size (bb : t) : float = bb.maxx -. bb.minx
+
+  let get (bbs : ts) (i : int) : t =
+    let bb = Vec_array.Float4.get bbs i in
+    { minx = bb.v1; miny = bb.v2; maxx = bb.v3; maxy = bb.v4 }
+  ;;
+
+  let set (bbs : ts) (i : int) (bb : t) : unit =
+    let open Vec_array.Float4 in
+    Vec_array.Float4.set bbs i { v1 = bb.minx; v2 = bb.miny; v3 = bb.maxx; v4 = bb.maxy }
+  ;;
 end
 
 module Quadrant = struct
@@ -94,7 +105,6 @@ module Node = struct
     ; mutable next : int
     ; bbox : Bbox.t
     }
-  [@@deriving sexp_of]
 
   let new_node centroid bbox = { centroid; children = 0; next = 0; bbox }
 
@@ -130,12 +140,7 @@ module Node = struct
       && a_child = b_child
       && a_next = b_next
     in
-    if not result
-    then (
-      Printf.printf "Node A: %s\n" (sexp_of_t a |> Sexplib.Sexp.to_string_hum);
-      Printf.printf "Node B: %s\n" (sexp_of_t b |> Sexplib.Sexp.to_string_hum);
-      result)
-    else result
+    result
   ;;
 end
 
@@ -143,12 +148,6 @@ module Qtree = struct
   type t = { nodes : Node.t Dynarray.t }
 
   let thresh_factor = 3.0
-
-  let sexp_of_t qt =
-    let nodes = Dynarray.to_list qt.nodes in
-    Sexplib.Std.sexp_of_list Node.sexp_of_t nodes
-  ;;
-
   let capacity = 1000
 
   let get_node (qt : t) (idx : int) : Node.t =
