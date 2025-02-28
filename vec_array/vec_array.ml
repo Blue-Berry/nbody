@@ -168,3 +168,35 @@ module Float4 = struct
     Array2.set v.arr 2 i v4
   ;;
 end
+
+module Int = struct
+  (* NOTE: something to be said for using int32 *)
+  type t =
+    { mutable arr : (int, int_elt, c_layout) Array1.t
+    ; mutable length : int
+    }
+
+  type elm = int
+
+  let create (cap : int) : t =
+    let arr = Array1.create int Bigarray.c_layout cap in
+    { arr; length = 0 }
+  ;;
+
+  let get (v : t) (i : int) : elm = Array1.get v.arr i
+
+  let grow (v : t) : unit =
+    let new_len = v.length * growth_factor in
+    let new_arr = Array1.create int c_layout new_len in
+    Array1.blit v.arr (Array1.sub new_arr 0 (Array1.dim v.arr));
+    v.arr <- new_arr
+  ;;
+
+  let add_last (v : t) (x : elm) : unit =
+    if v.length >= Array1.dim v.arr then grow v;
+    Array1.unsafe_set v.arr v.length x;
+    v.length <- v.length + 1
+  ;;
+
+  let set (v : t) (i : int) (x : elm) : unit = Array1.set v.arr i x
+end

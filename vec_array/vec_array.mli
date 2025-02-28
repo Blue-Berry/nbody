@@ -58,3 +58,15 @@ module Float4 : sig
   val add_last : t -> elm -> unit
   val set : t -> int -> elm -> unit
 end
+
+module Int : sig
+  type t 
+
+  type elm = int
+
+  val create : int -> t
+  val get : t -> int -> elm
+  val add_last : t -> elm -> unit
+  val set : t -> int -> elm -> unit
+end
+
