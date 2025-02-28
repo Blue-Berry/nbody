@@ -20,7 +20,7 @@ module Float = struct
   let grow (v : t) : unit =
     let new_len = v.length * growth_factor in
     let new_arr = Array1.create float64 c_layout new_len in
-    Array1.blit v.arr new_arr;
+    Array1.blit v.arr (Array1.sub new_arr 0 (Array1.dim v.arr));
     v.arr <- new_arr
   ;;
 
@@ -47,7 +47,7 @@ module Float2 = struct
   let dim2 = 2
 
   let create (cap : int) : t =
-    let arr = Array2.create float64 c_layout dim2 cap in
+    let arr = Array2.create float64 c_layout cap dim2 in
     { arr; length = 0 }
   ;;
 
@@ -55,8 +55,8 @@ module Float2 = struct
 
   let grow v =
     let new_len = v.length * growth_factor in
-    let new_arr = Array2.create float64 c_layout dim2 new_len in
-    Array2.blit v.arr new_arr;
+    let new_arr = Array2.create float64 c_layout new_len dim2 in
+    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr) );
     v.arr <- new_arr
   ;;
 
@@ -88,7 +88,7 @@ module Float3 = struct
     }
 
   let create (cap : int) : t =
-    let arr = Array2.create float64 c_layout dim2 cap in
+    let arr = Array2.create float64 c_layout cap dim2 in
     { arr; length = 0 }
   ;;
 
@@ -96,8 +96,8 @@ module Float3 = struct
 
   let grow v =
     let new_len = v.length * growth_factor in
-    let new_arr = Array2.create float64 c_layout dim2 new_len in
-    Array2.blit v.arr new_arr;
+    let new_arr = Array2.create float64 c_layout new_len dim2 in
+    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr) );
     v.arr <- new_arr
   ;;
 
@@ -132,7 +132,7 @@ module Float4 = struct
     }
 
   let create (cap : int) : t =
-    let arr = Array2.create float64 c_layout dim2 cap in
+    let arr = Array2.create float64 c_layout cap dim2 in
     { arr; length = 0 }
   ;;
 
@@ -144,10 +144,11 @@ module Float4 = struct
     { v1; v2; v3; v4 }
   ;;
 
+(* Copy all elements of a Bigarray in another Bigarray. Genarray.blit src dst copies all elements of src into dst. Both arrays src and dst must have the same number of dimensions and equal dimensions. Copying a sub-array of src to a sub-array of dst can be achieved by applying Genarray.blit to sub-array or slices of src and dst. *)
   let grow v =
     let new_len = v.length * growth_factor in
-    let new_arr = Array2.create float64 c_layout dim2 new_len in
-    Array2.blit v.arr new_arr;
+    let new_arr = Array2.create float64 c_layout new_len dim2 in
+    Array2.blit v.arr (Array2.sub_left new_arr 0 (Array2.dim1 v.arr) );
     v.arr <- new_arr
   ;;
 
