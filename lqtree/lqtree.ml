@@ -1,7 +1,6 @@
 open Owl.Maths
 module Nbody = Nbody
 open Nbody
-open Sexplib.Std
 
 let ( +. ) = add
 let ( -. ) = sub
@@ -252,6 +251,8 @@ module Qtree = struct
 
   let new_t (bbox : Bbox.t) =
     let nodes = Node.new_ts () in
+    let node = Node.new_node (0.0, zero) bbox in
+    Node.add nodes node;
     { nodes }
   ;;
 

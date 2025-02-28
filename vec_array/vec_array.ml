@@ -26,7 +26,7 @@ module Float = struct
 
   let add_last (v : t) (x : float) : unit =
     if v.length >= Array1.dim v.arr then grow v;
-    Array1.unsafe_set v.arr v.length x;
+    Array1.set v.arr v.length x;
     v.length <- v.length + 1
   ;;
 
@@ -68,8 +68,8 @@ module Float2 = struct
 
   let add_last v { v1; v2 } =
     if v.length >= Array2.dim2 v.arr then grow v;
-    Array2.unsafe_set v.arr v.length 0 v1;
-    Array2.unsafe_set v.arr v.length 1 v2;
+    Array2.set v.arr v.length 0 v1;
+    Array2.set v.arr v.length 1 v2;
     v.length <- v.length + 1
   ;;
 
@@ -117,9 +117,9 @@ module Float3 = struct
 
   let add_last v { v1; v2; v3 } =
     if v.length >= Array2.dim2 v.arr then grow v;
-    Array2.unsafe_set v.arr v.length 0 v1;
-    Array2.unsafe_set v.arr v.length 1 v2;
-    Array2.unsafe_set v.arr v.length 2 v3;
+    Array2.set v.arr v.length 0 v1;
+    Array2.set v.arr v.length 1 v2;
+    Array2.set v.arr v.length 2 v3;
     v.length <- v.length + 1
   ;;
 
@@ -171,10 +171,10 @@ module Float4 = struct
 
   let add_last v { v1; v2; v3; v4 } =
     if v.length >= Array2.dim2 v.arr then grow v;
-    Array2.unsafe_set v.arr v.length 0 v1;
-    Array2.unsafe_set v.arr v.length 1 v2;
-    Array2.unsafe_set v.arr v.length 2 v3;
-    Array2.unsafe_set v.arr v.length 2 v4;
+    Array2.set v.arr v.length 0 v1;
+    Array2.set v.arr v.length 1 v2;
+    Array2.set v.arr v.length 2 v3;
+    Array2.set v.arr v.length 2 v4;
     v.length <- v.length + 1
   ;;
 
@@ -214,7 +214,7 @@ module Int = struct
 
   let add_last (v : t) (x : elm) : unit =
     if v.length >= Array1.dim v.arr then grow v;
-    Array1.unsafe_set v.arr v.length x;
+    Array1.set v.arr v.length x;
     v.length <- v.length + 1
   ;;
 
