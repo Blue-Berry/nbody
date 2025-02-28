@@ -46,6 +46,13 @@ module Bbox = struct
     let open Vec_array.Float4 in
     Vec_array.Float4.set bbs i { v1 = bb.minx; v2 = bb.miny; v3 = bb.maxx; v4 = bb.maxy }
   ;;
+
+  let add (bbs : ts) (bb : t) : unit =
+    let open Vec_array.Float4 in
+    Vec_array.Float4.add_last
+      bbs
+      { v1 = bb.minx; v2 = bb.miny; v3 = bb.maxx; v4 = bb.maxy }
+  ;;
 end
 
 module Quadrant = struct
@@ -150,19 +157,12 @@ module Node = struct
     result
   ;;
 
-  (* type ts = *)
-  (*   { mutable centroids : Vec_array.Float3.t *)
-  (*   ; mutable children : Vec_array.Int.t *)
-  (*   ; mutable next : Vec_array.Int.t *)
-  (*   ; mutable bboxs : Bbox.ts *)
-  (*   } *)
-
   type _ node_field =
     | Centroid : centroid node_field
     | Children : int node_field
     | Next : int node_field
     | Bbox : Bbox.t node_field
-    | All : t node_field
+    | Full : t node_field
 
   let get (type a) (node : ts) (idx : int) (field : a node_field) : a =
     let open Vec_array in
@@ -172,50 +172,98 @@ module Node = struct
       v1, (v2, v3)
     | Children -> Int.get node.children idx
     | Next -> Int.get node.next idx
-    | Bbox ->
-      let Float4.{ v1; v2; v3; v4 } = Float4.get node.bboxs idx in
-      Bbox.{ minx = v1; miny = v2; maxx = v3; maxy = v4 }
-    | All ->
+    | Bbox -> Bbox.get node.bboxs idx
+    | Full ->
       let Float3.{ v1; v2; v3 } = Float3.get node.centroids idx in
       let centroid = v1, (v2, v3) in
-      let Float4.{ v1; v2; v3; v4 } = Float4.get node.bboxs idx in
       { centroid
       ; children = Int.get node.children idx
       ; next = Int.get node.next idx
-      ; bbox = { minx = v1; miny = v2; maxx = v3; maxy = v4 }
+      ; bbox = Bbox.get node.bboxs idx
       }
+  ;;
+
+  let set (type a) (node : ts) (idx : int) (field : a node_field) (value : a) : unit =
+    let open Vec_array in
+    match field with
+    | Centroid ->
+      let v1, (v2, v3) = value in
+      Float3.set node.centroids idx Float3.{ v1; v2; v3 }
+    | Children -> Int.set node.children idx value
+    | Next -> Int.set node.next idx value
+    | Bbox -> Bbox.set node.bboxs idx value
+    | Full ->
+      let v1, (v2, v3) = value.centroid in
+      Float3.set node.centroids idx Float3.{ v1; v2; v3 };
+      Int.set node.children idx value.children;
+      Int.set node.next idx value.next;
+      Bbox.set node.bboxs idx value.bbox
+  ;;
+
+  let add (node : ts) (value : t) : unit =
+    let open Vec_array in
+    let v1, (v2, v3) = value.centroid in
+    Float3.add_last node.centroids Float3.{ v1; v2; v3 };
+    Int.add_last node.children value.children;
+    Int.add_last node.next value.next;
+    Bbox.add node.bboxs value.bbox
+  ;;
+
+  let capacity = 1000
+
+  let new_ts () : ts =
+    let centroids = Vec_array.Float3.create capacity in
+    let children = Vec_array.Int.create capacity in
+    let next = Vec_array.Int.create capacity in
+    let bboxs = Vec_array.Float4.create capacity in
+    { centroids; children; next; bboxs }
+  ;;
+
+  let validate (node : ts) : unit =
+    let open Vec_array in
+    let centroids = Float3.len node.centroids in
+    let children = Int.len node.children in
+    let next = Int.len node.next in
+    let bboxs = Float4.len node.bboxs in
+    assert (centroids = children);
+    assert (centroids = next);
+    assert (centroids = bboxs);
+    ()
+  ;;
+
+  let nodes_len (nodes : ts) : int =
+    let open Vec_array in
+    Int.len nodes.children
+  ;;
+
+  let clear (nodes : ts) : unit =
+    let open Vec_array in
+    Float3.clear nodes.centroids;
+    Int.clear nodes.children;
+    Int.clear nodes.next;
+    Float4.clear nodes.bboxs
   ;;
 end
 
 module Qtree = struct
-  type t = { nodes : Node.t Dynarray.t }
+  type t = { nodes : Node.ts }
 
   let thresh_factor = 3.0
-  let capacity = 1000
-
-  let get_node (qt : t) (idx : int) : Node.t =
-    assert (idx <= Dynarray.length qt.nodes);
-    Dynarray.get qt.nodes idx
-  [@@inline]
-  ;;
 
   let new_t (bbox : Bbox.t) =
-    let nodes = Dynarray.create () in
-    Dynarray.set_capacity nodes capacity;
-    let node = Node.new_node (0.0, zero) bbox in
-    Dynarray.add_last nodes node;
+    let nodes = Node.new_ts () in
     { nodes }
   ;;
 
   let subdivide (qt : t) (node_idx : int) : int =
-    let children = qt.nodes |> Dynarray.length in
-    let node = get_node qt node_idx in
+    let children = Node.nodes_len qt.nodes in
+    let node = Node.get qt.nodes node_idx Full in
     assert (Node.(node_type node != Node));
-    Dynarray.set qt.nodes node_idx { node with children };
+    Node.set qt.nodes node_idx Full { node with children };
     let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
     for i = 0 to 3 do
       let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
-      Dynarray.add_last
+      Node.add
         qt.nodes
         { centroid = 0.0, zero; children = 0; next = next_nodes.(i); bbox }
     done;
@@ -223,16 +271,17 @@ module Qtree = struct
   ;;
 
   let subdivide_leaf (qt : t) (node_idx : int) : int =
-    let children = qt.nodes |> Dynarray.length in
-    let node = get_node qt node_idx in
+    (* TODO: get only the valid fields *)
+    let children = Node.nodes_len qt.nodes in
+    let node = Node.get qt.nodes node_idx Full in
     assert (Node.(node_type node = Leaf));
     let lm, lp = node.centroid in
-    Dynarray.set qt.nodes node_idx { node with children };
+    Node.set qt.nodes node_idx Full { node with children };
     let next_nodes = [| children + 1; children + 2; children + 3; node.next |] in
     for i = 0 to 3 do
       let bbox = node.bbox |> Quadrant.to_bbox (Quadrant.of_index i) in
       let centroid = if Bbox.contains_point lp bbox then lm, lp else 0.0, zero in
-      Dynarray.add_last qt.nodes { centroid; children = 0; next = next_nodes.(i); bbox }
+      Node.add qt.nodes { centroid; children = 0; next = next_nodes.(i); bbox }
     done;
     children
   ;;
@@ -253,7 +302,7 @@ module Qtree = struct
 
   let acc_by_qtree (pos1 : point) (q : t) : vec =
     let rec acc_aux (q : t) (node_idx : int) (acc : vec) : vec =
-      let node = get_node q node_idx in
+      let node = Node.get q.nodes node_idx Full in
       let cm, cp = node.centroid in
       match Node.node_type node with
       | Empty when node.next = 0 -> acc
@@ -271,7 +320,7 @@ module Qtree = struct
 
   let insert (qt : t) ((m, pos) : centroid) =
     let rec insert_aux (q : t) (node_idx : int) =
-      let node = get_node q node_idx in
+      let node = Node.get q.nodes node_idx Full in
       match Node.node_type node with
       | Node ->
         let i = Quadrant.contains pos node.bbox |> Quadrant.to_index in
@@ -279,20 +328,20 @@ module Qtree = struct
         insert_aux q (node.children + i)
       | Empty ->
         node.centroid <- m, pos;
-        Dynarray.set q.nodes node_idx node
+        Node.set q.nodes node_idx Full node
       | Leaf ->
         let cm, cp = node.centroid in
         if close_enough cp pos
         then (
           node.centroid <- m +. cm, pos;
-          Dynarray.set q.nodes node_idx node)
+          Node.set q.nodes node_idx Full node)
         else (
           (* Convert leaf to node. calculate new centroid, split into quadrants, and recurse. *)
           let children = subdivide_leaf q node_idx in
           let new_centroid = centroid_sum node.centroid (m, pos) in
           node.centroid <- new_centroid;
           node.children <- children;
-          Dynarray.set q.nodes node_idx node;
+          Node.set q.nodes node_idx Full node;
           let q_idx = Quadrant.contains pos node.bbox |> Quadrant.to_index in
           insert_aux q (children + q_idx))
     in
@@ -318,13 +367,13 @@ module Qtree = struct
   ;;
 
   let clear (q : t) : unit =
-    if Dynarray.length q.nodes = 0
+    if Node.nodes_len q.nodes = 0
     then ()
     else (
-      let node = Dynarray.get q.nodes 0 in
+      let node = Node.get q.nodes 0 Full in
       let bbox = node.bbox in
-      Dynarray.clear q.nodes;
+      Node.clear q.nodes;
       let node = Node.new_node (0.0, zero) bbox in
-      Dynarray.add_last q.nodes node)
+      Node.add q.nodes node)
   ;;
 end

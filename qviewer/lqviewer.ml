@@ -40,7 +40,7 @@ let draw_centroid (m : float) (x : float) (y : float) (c : color) : unit =
 ;;
 
 let rec draw_qtree (q : Qtree.t) (node_idx : int) (c : int) : unit =
-  let node = Qtree.get_node q node_idx in
+  let node = Node.get q.nodes node_idx Full in
   match Node.node_type node with
   | Empty when node.next = 0 -> ()
   | Empty -> draw_qtree q node.next c

@@ -31,6 +31,8 @@ module Float = struct
   ;;
 
   let set (v : t) (i : int) (x : float) : unit = Array1.set v.arr i x
+  let len (v : t) : int = v.length
+  let clear (v : t) : unit = v.length <- 0
 end
 
 module Float2 = struct
@@ -75,6 +77,9 @@ module Float2 = struct
     Array2.set v.arr i 0 v1;
     Array2.set v.arr i 1 v2
   ;;
+
+  let len (v : t) : int = v.length
+  let clear (v : t) : unit = v.length <- 0
 end
 
 module Float3 = struct
@@ -123,6 +128,9 @@ module Float3 = struct
     Array2.set v.arr i 1 v2;
     Array2.set v.arr i 2 v3
   ;;
+
+  let len (v : t) : int = v.length
+  let clear (v : t) : unit = v.length <- 0
 end
 
 module Float4 = struct
@@ -176,6 +184,9 @@ module Float4 = struct
     Array2.set v.arr i 2 v3;
     Array2.set v.arr i 2 v4
   ;;
+
+  let len (v : t) : int = v.length
+  let clear (v : t) : unit = v.length <- 0
 end
 
 module Int = struct
@@ -208,4 +219,6 @@ module Int = struct
   ;;
 
   let set (v : t) (i : int) (x : elm) : unit = Array1.set v.arr i x
+  let len (v : t) : int = v.length
+  let clear (v : t) : unit = v.length <- 0
 end

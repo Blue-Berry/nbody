@@ -9,6 +9,8 @@ module Float : sig
   val grow : t -> unit
   val add_last : t -> float -> unit
   val set : t -> int -> elm -> unit
+  val len : t -> int
+  val clear : t -> unit
 end
 
 module Float2 : sig
@@ -24,6 +26,8 @@ module Float2 : sig
   val grow : t -> unit
   val add_last : t -> elm -> unit
   val set : t -> int -> elm -> unit
+  val len : t -> int
+  val clear : t -> unit
 end
 
 module Float3 : sig
@@ -40,6 +44,8 @@ module Float3 : sig
   val grow : t -> unit
   val add_last : t -> elm -> unit
   val set : t -> int -> elm -> unit
+  val len : t -> int
+  val clear : t -> unit
 end
 
 module Float4 : sig
@@ -57,6 +63,8 @@ module Float4 : sig
   val grow : t -> unit
   val add_last : t -> elm -> unit
   val set : t -> int -> elm -> unit
+  val len : t -> int
+  val clear : t -> unit
 end
 
 module Int : sig
@@ -67,4 +75,6 @@ module Int : sig
   val get : t -> int -> elm
   val add_last : t -> elm -> unit
   val set : t -> int -> elm -> unit
+  val len : t -> int
+  val clear : t -> unit
 end
