@@ -30,7 +30,7 @@ let bench_linear () =
   List.iter (step_lq lqt) lqtree_bodies
 ;;
 
-let _bench_quad () =
+let bench_quad () =
   let open Nbody in
   let open Qtree in
   let bb =
@@ -55,5 +55,5 @@ let _bench_quad () =
 ;;
 
 let () =
-  Command_unix.run (Bench.make_command [ Bench.Test.create ~name:"Linear" bench_linear ])
+  Command_unix.run (Bench.make_command [ Bench.Test.create ~name:"Quadtree" bench_linear ])
 ;;

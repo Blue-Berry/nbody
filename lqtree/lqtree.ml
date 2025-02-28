@@ -102,15 +102,13 @@ module Node = struct
     | Leaf
     | Node
 
-    (* Hotspot *)
+  (* Hotspot *)
   let node_type (node : t) : kind =
-    let m, _ = node.centroid in
-    match m < 0.00001 with
-    | true -> Empty
-    | _ ->
-      (match node.children with
-       | 0 -> Leaf
-       | _ -> Node)
+    if node.children = 0
+    then (
+      let m, _ = node.centroid in
+      if m = 0.0 then Empty else Leaf)
+    else Node
   ;;
 
   let equal (a : t) (b : t) : bool =
@@ -153,7 +151,7 @@ module Qtree = struct
   let get_node (qt : t) (idx : int) : Node.t =
     assert (idx <= Dynarray.length qt.nodes);
     Dynarray.get qt.nodes idx
-    [@@inline]
+  [@@inline]
   ;;
 
   let new_t (bbox : Bbox.t) =
