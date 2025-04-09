@@ -27,7 +27,17 @@
         devShells = {
           default = mkShell {
             inputsFrom = [self'.packages.default];
-            buildInputs = [pkgs.ocamlPackages.utop pkgs.ocamlPackages.ocaml-lsp pkgs.ocamlPackages.ocamlformat pkgs.cargo-flamegraph];
+            buildInputs = [
+              pkgs.ocamlPackages.utop
+              pkgs.ocamlPackages.ocamlformat
+              pkgs.cargo-flamegraph
+              pkgs.ocamlPackages.earlybird
+              (pkgs.ocamlPackages.ocaml-lsp.overrideAttrs (oldAttrs: {
+                patches = [
+                  ./inlay-hints.patch
+                ];
+              }))
+            ];
           };
         };
 

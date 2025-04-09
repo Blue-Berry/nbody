@@ -1,3 +1,4 @@
 (executable
  (name bench)
+ (modes byte exe)
  (libraries lqtree qtree core_bench))
