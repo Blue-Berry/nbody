@@ -18,7 +18,9 @@
         system,
         ...
       }: let
-        inherit (pkgs) dockerTools ocamlPackages mkShell;
+        # ocamlPackages = pkgs.ocaml-ng.ocamlPackages_5_3;
+        inherit (pkgs) dockerTools mkShell;
+        ocamlPackages = pkgs.ocaml-ng.ocamlPackages_5_3;
         inherit (dockerTools) buildImage;
         inherit (ocamlPackages) buildDunePackage;
         name = "nbody";
@@ -27,7 +29,16 @@
         devShells = {
           default = mkShell {
             inputsFrom = [self'.packages.default];
-            buildInputs = [pkgs.ocamlPackages.utop pkgs.ocamlPackages.ocaml-lsp pkgs.ocamlPackages.ocamlformat pkgs.cargo-flamegraph];
+            buildInputs = with ocamlPackages; [
+              utop
+              (ocaml-lsp.overrideAttrs (oldAttrs: {
+                patches = [
+                  ./inlay-hints.patch
+                ];
+              }))
+              ocamlformat
+              pkgs.cargo-flamegraph
+            ];
           };
         };
 
@@ -36,7 +47,7 @@
             inherit version;
             pname = name;
             src = ./.;
-            buildInputs = with pkgs.ocamlPackages; [
+            buildInputs = with ocamlPackages; [
               eio
               graphics
               owl
