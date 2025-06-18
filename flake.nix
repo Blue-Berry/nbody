@@ -11,15 +11,12 @@
       systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
 
       perSystem = {
-        config,
         self',
-        inputs',
         pkgs,
-        system,
         ...
       }: let
-        inherit (pkgs) dockerTools ocamlPackages mkShell;
-        inherit (dockerTools) buildImage;
+        inherit (pkgs) mkShell;
+        ocamlPackages = pkgs.ocaml-ng.ocamlPackages_5_3;
         inherit (ocamlPackages) buildDunePackage;
         name = "nbody";
         version = "0.0.1";
@@ -27,7 +24,7 @@
         devShells = {
           default = mkShell {
             inputsFrom = [self'.packages.default];
-            buildInputs = [pkgs.ocamlPackages.utop pkgs.ocamlPackages.ocaml-lsp pkgs.ocamlPackages.ocamlformat ];
+            buildInputs = [ocamlPackages.utop ocamlPackages.ocaml-lsp ocamlPackages.ocamlformat ];
           };
         };
 
@@ -36,23 +33,12 @@
             inherit version;
             pname = name;
             src = ./.;
-            buildInputs = with pkgs.ocamlPackages; [
+            buildInputs = with ocamlPackages; [
                 eio
                 graphics
                 owl
                 ppx_jane
             ];
-          };
-
-          docker = buildImage {
-            inherit name;
-            tag = version;
-            config = {
-              Cmd = ["${self'.packages.default}/bin/${name}"];
-              Env = [
-                "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-              ];
-            };
           };
         };
       };

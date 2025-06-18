@@ -4,7 +4,6 @@
 
 (executable
  (name qviewer)
- (flags (:standard -O3))
  (libraries graphics unix))
 
 

@@ -19,14 +19,15 @@ type qtree =
   | Empty
   | Leaf of float * point
   | Node of centroid * quads
-  [@@deriving sexp]
+[@@deriving sexp]
 
 and quads =
   { ul : qtree
   ; ur : qtree
   ; ll : qtree
   ; lr : qtree
-  } [@@deriving sexp]
+  }
+[@@deriving sexp]
 
 module Bbox = struct
   type t =
@@ -34,7 +35,8 @@ module Bbox = struct
     ; miny : float
     ; maxx : float
     ; maxy : float
-    } [@@deriving sexp]
+    }
+  [@@deriving sexp]
 
   let contains_point ((x, y) : point) (bb : t) : bool =
     bb.minx <= x && x <= bb.maxx && bb.miny <= y && y <= bb.maxy
@@ -50,7 +52,7 @@ module Quadrant = struct
     | UR
     | LL
     | LR
-    [@@deriving sexp]
+  [@@deriving sexp]
 
   let contains ((x, y) : point) (bb : Bbox.t) : t =
     match x <= Bbox.midx bb, y <= Bbox.midy bb with
@@ -71,23 +73,27 @@ module Quadrant = struct
   ;;
 end
 
-let rec acc_by_qtree (pos1 : point) (q : qtree) (bb : Bbox.t) (thresh : float) : vec =
+let acc_by_qtree (pos1 : point) (q : qtree) (bb : Bbox.t) (thresh : float): vec =
+  let rec aux (pos1 : point) (q : qtree) (bb : Bbox.t) (thresh : float) (k : vec -> vec) =
   match q with
-  | Empty -> zero
-  | Leaf (m, p) -> zero ++ acc_on pos1 m p
+  | Empty -> k zero
+  | Leaf (m, p) -> k @@ (zero ++ acc_on pos1 m p)
   | Node (c, qs) ->
     let cm, cp = c in
     let d = pos1 --> cp |> mag in
-    if d > thresh && (Bbox.contains_point pos1 bb |> not)
-    then acc_on pos1 cm cp
-    else (
+    if d > thresh && Bbox.contains_point pos1 bb |> not
+    then k @@ acc_on pos1 cm cp
+    else
       (* recurse on quadrants *)
-      let acc_ur = acc_by_qtree pos1 qs.ur (Quadrant.to_bbox UR bb) thresh in
-      let acc_ll = acc_by_qtree pos1 qs.ll (Quadrant.to_bbox LL bb) thresh in
-      let acc_ul = acc_by_qtree pos1 qs.ul (Quadrant.to_bbox UL bb) thresh in
-      let acc_lr = acc_by_qtree pos1 qs.lr (Quadrant.to_bbox LR bb) thresh in
-      (* sum the four quadrants *)
-      acc_ur ++ acc_ll ++ (acc_ul ++ acc_lr))
+      (
+      (aux[@tailcall]) pos1 qs.ur (Quadrant.to_bbox UR bb) thresh (fun acc_ur ->
+        (aux[@tailcall]) pos1 qs.ll (Quadrant.to_bbox LL bb) thresh (fun acc_ll ->
+          (aux[@tailcall]) pos1 qs.ul (Quadrant.to_bbox UL bb) thresh (fun acc_ul ->
+            (aux[@tailcall]) pos1 qs.lr (Quadrant.to_bbox LR bb) thresh (fun acc_lr ->
+              (* sum the four quadrants *)
+              acc_ur ++ acc_ll ++ (acc_ul ++ acc_lr))))))
+  in
+  aux pos1 q bb thresh (fun x -> x)
 ;;
 
 let rec qinsert (q : qtree) (m : float) (p : point) (bb : Bbox.t) : qtree =
@@ -105,7 +111,7 @@ let rec qinsert (q : qtree) (m : float) (p : point) (bb : Bbox.t) : qtree =
       | LR -> { qs with lr = Leaf (lm, lp) }
     in
     let node = Node ((lm, lp), qs) in
-    qinsert node m p bb
+    (qinsert[@tailcall]) node m p bb
   | Node (c, qs) ->
     let qs =
       match Quadrant.contains p bb with
@@ -117,9 +123,10 @@ let rec qinsert (q : qtree) (m : float) (p : point) (bb : Bbox.t) : qtree =
     Node (centroid_sum c (m, p), qs)
 ;;
 
-
-let build_qtree_in (bodies: body list) (bb: Bbox.t) : qtree =
+let build_qtree_in (bodies : body list) (bb : Bbox.t) : qtree =
   List.fold_left (fun acc b -> qinsert acc b.mass b.pos bb) Empty bodies
+;;
 
 let string_of_qtree (qtree : qtree) : string =
   sexp_of_qtree qtree |> Sexplib.Sexp.to_string_hum
+;;
